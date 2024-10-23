@@ -19,188 +19,189 @@ const router = express.Router();
 //  If email exists, return an error saying the email already exists
 //  If email does not exist, proceed to hash the password and add to the database
 const transporter = nodemailer.createTransport({
-    host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
-    port: 587,
-    secure: false,
-    tls: {
-        rejectUnauthorized: false,
-    },
-    // ignoreTLS: true,
+  host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
+  port: 587,
+  secure: false,
+  tls: {
+    rejectUnauthorized: false,
+  },
+  // ignoreTLS: true,
 });
 router
-    .post("/adduser", async (req, res) => {
+  .post("/api/adduser", async (req, res) => {
+    console.log("/adduser");
+    let { username, password, email } = req.body;
+    console.log(`BEFORE EMAIL===== ${email}`);
 
-        console.log("/adduser");
-        let { username, password, email } = req.body;
-        console.log(`BEFORE EMAIL===== ${email}`);
+    // email = encodeURI(email).replace(/%20/g, "+");
+    console.log(`EMAIL===== ${email}`);
+    const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu";
 
-        // email = encodeURI(email).replace(/%20/g, "+");
-        console.log(`EMAIL===== ${email}`);
-        const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu";
+    // Check for duplicate user
+    const userExists = await User.findOne({ $or: [{ username }, { email }] });
+    if (userExists) {
+      console.log(`${username} ALREADY EXISTS`);
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User already exists" });
+    }
 
-        // Check for duplicate user
-        const userExists = await User.findOne({ $or: [{ username }, { email }] });
-        if (userExists) {
-            console.log(`${username} ALREADY EXISTS`);
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User already exists" });
-        }
+    const verificationKey = "supersecretkey";
+    const pwhash = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      username: username,
+      email: email,
+      pwhash: pwhash,
+      verificationKey: verificationKey,
+      verified: false,
+    });
+    await newUser.save();
+    console.log(`${username} CREATED`);
 
-        const verificationKey = "supersecretkey";
-        const pwhash = await bcrypt.hash(password, 10);
-        const newUser = new User({
-            username: username,
-            email: email,
-            pwhash: pwhash,
-            verificationKey: verificationKey,
-            verified: false,
+    const mailOptions = {
+      from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
+      to: email,
+      cc: ccEmail,
+      subject: "Please verify your account",
+      text: `http://${req.headers.host}/verify?email=${email}&key=${verificationKey}`,
+      // text: `https://www.google.com`,
+    };
+
+    await transporter.sendMail(mailOptions, (error, info) => {
+      console.log("USER=====", newUser);
+      if (error) {
+        console.log("VERIFICATION ERROR=====", error);
+
+        return res.status(200).json({
+          status: "ERROR",
+          error: true,
+          message: "Failed to send email",
         });
-        await newUser.save();
-        console.log(`${username} CREATED`);
+      }
+    });
+    if (!res.headersSent)
+      return res
+        .status(200)
+        .json({ status: "OK", message: `${username} successfully added.` });
+  })
+  .post("/api/login", async (req, res) => {
+    console.log("/api/login");
+    const { username, password } = req.body;
 
-        const mailOptions = {
-            from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
-            to: email,
-            cc: ccEmail,
-            subject: "Please verify your account",
-            text: `http://${req.headers.host}/verify?email=${email}&key=${verificationKey}`,
-            // text: `https://www.google.com`,
-        };
-
-        await transporter.sendMail(mailOptions, (error, info) => {
-            console.log("USER=====", newUser);
-            if (error) {
-                console.log("VERIFICATION ERROR=====", error);
-
-                return res.status(200).json({
-                    status: "ERROR",
-                    error: true,
-                    message: "Failed to send email",
-                });
-            }
-        });
-        if (!res.headersSent)
-            return res
-                .status(200)
-                .json({ status: "OK", message: `${username} successfully added.` });
-    })
-    .post("/api/login", async (req, res) => {
-        console.log("/api/login");
-        const { username, password } = req.body;
-
-        const user = await User.findOne({ username });
-        console.log(user);
-        console.log(req.cookies);
-        if (!user || !(await bcrypt.compare(password, user.pwhash))) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "Invalid credentials" });
-        }
-
-        if (!user.verified) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not verified" });
-        }
-
-        console.log(req.session);
-
-        req.session.userId = user._id;
-        res.status(200).json({ status: "OK", message: "Login successful" });
-    })
-    .post("/logout", (req, res) => {
-        console.log("Logging out...");
-        req.session.destroy((err) => {
-            if (err) {
-                return res.status(401).json({ errorMessage: "Logout failed" });
-            }
-            return res.json({ status: "OK" });
-        });
-    })
-    .get("/verify", async (req, res) => {
-        let { email, key } = req.query;
-        console.log("/verify");
-        console.table(req.query);
-        email = encodeURI(email).replace(/%20/g, "+");
-        const data = await User.findOne({ email });
-
-        if (!data)
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not found" });
-        console.log("user found");
-        // if (key !== data.verificationKey) {
-        //   return res
-        //     .status(200)
-        //     .json({ status: "ERROR", error: true, message: "Invalid key" });
-        // }
-        const bruh = await User.updateOne({ _id: data._id }, { verified: true });
-        console.log(bruh);
-
-        return res
-            .status(200)
-            .json({ status: "OK", message: "User verified successfully" });
-    })
-    .get("/media/output.mpd", async (req, res) => {
-        console.log('Reached media/output.mpd');
-        console.log(req.session);
-
-        if (!req.session.userId) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not logged in" });
-        }
-
-        return res.sendFile('/root/MPEG-DASH_media_player/media/output.mpd');
+    const user = await User.findOne({ username });
+    console.log(user);
+    console.log(req.cookies);
+    if (!user || !(await bcrypt.compare(password, user.pwhash))) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "Invalid credentials" });
     }
-    )
-    .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
-        console.log('Reached media/chunk...m4s');
-        // console.log(req.session);
 
-        const bandwidth = req.params["bandwidth"];
-        const segment_num = req.params["segment"];
-        // console.log("Req params:", bandwidth, segment_num)
-
-        if (!req.session.userId) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not logged in" });
-        }
-
-        return res
-            .status(200)
-            .json({ status: "OK", message: "Manifest sent successfully" });
+    if (!user.verified) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not verified" });
     }
-    )
-    .get("/media", async (req, res) => {
-        console.log('Reached /media');
-        console.log(req.originalUrl);
 
+    console.log(req.session);
+
+    req.session.userId = user._id;
+    res.status(200).json({ status: "OK", message: "Login successful" });
+  })
+  .post("/logout", (req, res) => {
+    console.log("Logging out...");
+    req.session.destroy((err) => {
+      if (err) {
         return res
-            .status(200)
-            .json({ status: "OK", message: "Manifest sent successfully" });
+          .status(200)
+          .json({
+            status: "ERROR",
+            error: true,
+            errorMessage: "Logout failed",
+          });
+      }
+      return res.json({ status: "OK" });
+    });
+  })
+  .get("/verify", async (req, res) => {
+    let { email, key } = req.query;
+    console.log("/verify");
+    console.table(req.query);
+    email = encodeURI(email).replace(/%20/g, "+");
+    const data = await User.findOne({ email });
+
+    if (!data)
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not found" });
+    console.log("user found");
+    // if (key !== data.verificationKey) {
+    //   return res
+    //     .status(200)
+    //     .json({ status: "ERROR", error: true, message: "Invalid key" });
+    // }
+    const bruh = await User.updateOne({ _id: data._id }, { verified: true });
+    console.log(bruh);
+
+    return res
+      .status(200)
+      .json({ status: "OK", message: "User verified successfully" });
+  })
+  .get("/media/output.mpd", async (req, res) => {
+    console.log("Reached media/output.mpd");
+    console.log(req.session);
+
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
     }
-    )
-    .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
-        console.log('Reached media/chunk...m4s');
-        // console.log(req.session);
 
-        const bandwidth = req.params["bandwidth"];
-        const segment_num = req.params["segment"];
-        // console.log("Req params:", bandwidth, segment_num)
+    return res.sendFile("/root/MPEG-DASH_media_player/media/output.mpd");
+  })
+  .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
+    console.log("Reached media/chunk...m4s");
+    // console.log(req.session);
 
-        if (!req.session.userId) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not logged in" });
-        }
+    const bandwidth = req.params["bandwidth"];
+    const segment_num = req.params["segment"];
+    // console.log("Req params:", bandwidth, segment_num)
 
-        return res
-            .status(200)
-            .json({ status: "OK", message: "Manifest sent successfully" });
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
     }
-    )
+
+    return res
+      .status(200)
+      .json({ status: "OK", message: "Manifest sent successfully" });
+  })
+  .get("/media", async (req, res) => {
+    console.log("Reached /media");
+    console.log(req.originalUrl);
+
+    return res
+      .status(200)
+      .json({ status: "OK", message: "Manifest sent successfully" });
+  })
+  .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
+    console.log("Reached media/chunk...m4s");
+    // console.log(req.session);
+
+    const bandwidth = req.params["bandwidth"];
+    const segment_num = req.params["segment"];
+    // console.log("Req params:", bandwidth, segment_num)
+
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
+
+    return res
+      .status(200)
+      .json({ status: "OK", message: "Manifest sent successfully" });
+  });
 
 module.exports = router;
