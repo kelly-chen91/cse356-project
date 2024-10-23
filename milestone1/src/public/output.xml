@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT1.500S" type="static" mediaPresentationDuration="PT0H0M46.280S" maxSegmentDuration="PT0H0M1.120S" profiles="urn:mpeg:dash:profile:full:2011">
+  <Period duration="PT0H0M46.280S">
+    <AdaptationSet contentType="video" segmentAlignment="true" maxWidth="1280" maxHeight="720" maxFrameRate="25" par="16:9" lang="eng" startWithSAP="1" mimeType="video/mp4">
+      <Representation id="1" codecs="avc1.640000" width="320" height="180" frameRate="25" sar="1:1" bandwidth="254000">
+        <SegmentTemplate media="chunk_254000_$Number$.m4s" initialization="chunk_254000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+      <Representation id="2" codecs="avc1.640014" width="320" height="180" frameRate="25" sar="1:1" bandwidth="507000">
+        <SegmentTemplate media="chunk_507000_$Number$.m4s" initialization="chunk_507000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+      <Representation id="3" codecs="avc1.640015" width="480" height="270" frameRate="25" sar="1:1" bandwidth="759000">
+        <SegmentTemplate media="chunk_759000_$Number$.m4s" initialization="chunk_759000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+      <Representation id="4" codecs="avc1.64001E" width="640" height="360" frameRate="25" sar="1:1" bandwidth="1013000">
+        <SegmentTemplate media="chunk_1013000_$Number$.m4s" initialization="chunk_1013000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+      <Representation id="5" codecs="avc1.64001E" width="640" height="360" frameRate="25" sar="1:1" bandwidth="1254000">
+        <SegmentTemplate media="chunk_1254000_$Number$.m4s" initialization="chunk_1254000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+      <Representation id="6" codecs="avc1.64001E" width="768" height="432" frameRate="25" sar="1:1" bandwidth="1883000">
+        <SegmentTemplate media="chunk_1883000_$Number$.m4s" initialization="chunk_1883000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+      <Representation id="7" codecs="avc1.64001F" width="1024" height="576" frameRate="25" sar="1:1" bandwidth="3134000">
+        <SegmentTemplate media="chunk_3134000_$Number$.m4s" initialization="chunk_3134000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+      <Representation id="8" codecs="avc1.64001F" width="1280" height="720" frameRate="25" sar="1:1" bandwidth="4952000">
+        <SegmentTemplate media="chunk_4952000_$Number$.m4s" initialization="chunk_4952000_init.mp4" timescale="12800" startNumber="1" duration="128000"/>
+      </Representation>
+    </AdaptationSet>  
+  </Period>
+</MPD>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MPEG-DASH Media Player</title>
+  <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+</head>
+<body>
+  <video id="videoPlayer" controls width="600"></video>
+  <div>
+    <div id="playPauseBtn">Play/Pause</div>
+    <button id="seekBtn">Seek</button>
+    <select id="resolutionSelect">
+      <option value="auto">Auto</option>
+      <option value="480p">480p</option>
+      <option value="720p">720p</option>
+      <option value="1080p">1080p</option>
+    </select>
+  </div>
+  
+  <script>
+    var video = document.getElementById('videoPlayer');
+    var player = dashjs.MediaPlayer().create();
+    player.initialize(video, '/path/to/manifest.mpd', false);
+
+    document.getElementById('playPauseBtn').addEventListener('click', function() {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    });
+
+    document.getElementById('seekBtn').addEventListener('click', function() {
+      var seekTime = prompt('Enter time to seek (in seconds):');
+      video.currentTime = seekTime;
+    });
+
+    document.getElementById('resolutionSelect').addEventListener('change', function() {
+      var selectedRes = this.value;
+      if (selectedRes === 'auto') {
+        player.setAutoSwitchQualityFor('video', true);
+      } else {
+        var quality = selectedRes === '1080p' ? 2 : selectedRes === '720p' ? 1 : 0;
+        player.setAutoSwitchQualityFor('video', false);
+        player.setQualityFor('video', quality);
+      }
+    });
+  </script>
+</body>
+</html>
