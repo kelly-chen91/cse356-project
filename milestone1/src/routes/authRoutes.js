@@ -63,7 +63,7 @@ router
       to: email,
       cc: ccEmail,
       subject: "Please verify your account",
-      text: `http://${req.headers.host}/verify?email=${email}&key=${verificationKey}`,
+      text: `http://${req.headers.host}/api/verify?email=${email}&key=${verificationKey}`,
       // text: `https://www.google.com`,
     };
 
@@ -108,22 +108,20 @@ router
     req.session.userId = user._id;
     res.status(200).json({ status: "OK", message: "Login successful" });
   })
-  .post("/logout", (req, res) => {
+  .post("/api/logout", (req, res) => {
     console.log("Logging out...");
     req.session.destroy((err) => {
       if (err) {
-        return res
-          .status(200)
-          .json({
-            status: "ERROR",
-            error: true,
-            errorMessage: "Logout failed",
-          });
+        return res.status(200).json({
+          status: "ERROR",
+          error: true,
+          errorMessage: "Logout failed",
+        });
       }
       return res.json({ status: "OK" });
     });
   })
-  .get("/verify", async (req, res) => {
+  .get("/api/verify", async (req, res) => {
     let { email, key } = req.query;
     console.log("/verify");
     console.table(req.query);
@@ -146,6 +144,19 @@ router
     return res
       .status(200)
       .json({ status: "OK", message: "User verified successfully" });
+  })
+  .post("/api/check-auth", (req, res) => {
+    if (!req.session.userId) {
+      return res.status(200).json({
+        status: "ERROR",
+        error: true,
+        isLoggedIn: false,
+        userId: "",
+      });
+    }
+    return res
+      .status(200)
+      .json({ status: "OK", isLoggedIn: true, userId: req.session.userId });
   })
   .get("/media/output.mpd", async (req, res) => {
     console.log("Reached media/output.mpd");
