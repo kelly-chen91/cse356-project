@@ -85,8 +85,8 @@ router
                 .status(200)
                 .json({ status: "OK", message: `${username} successfully added.` });
     })
-    .post("/login", async (req, res) => {
-        console.log("/login");
+    .post("/api/login", async (req, res) => {
+        console.log("/api/login");
         const { username, password } = req.body;
 
         const user = await User.findOne({ username });
