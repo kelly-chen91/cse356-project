@@ -18,6 +18,8 @@ nvm install --lts
 # Install dependencies
 npm install
 
+# Install ffmpeg
+sudo apt-get install -y ffmpeg
 
 # Open port 25 access for grading server.
 # Note that iptables commands are not automatically saved on server restart.

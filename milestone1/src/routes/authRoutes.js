@@ -152,16 +152,16 @@ router
                 .json({ status: "ERROR", error: true, message: "User not logged in" });
         }
 
-        return res.sendFile('/root/MPEG-DASH_media_player-1/src/public/output.xml');
+        return res.sendFile('/root/MPEG-DASH_media_player/media/output.mpd');
     }
     )
     .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
         console.log('Reached media/chunk...m4s');
-        console.log(req.session);
+        // console.log(req.session);
 
         const bandwidth = req.params["bandwidth"];
         const segment_num = req.params["segment"];
-        console.log("Req params:", bandwidth, segment_num)
+        // console.log("Req params:", bandwidth, segment_num)
 
         if (!req.session.userId) {
             return res
@@ -173,6 +173,34 @@ router
             .status(200)
             .json({ status: "OK", message: "Manifest sent successfully" });
     }
-    );
+    )
+    .get("/media", async (req, res) => {
+        console.log('Reached /media');
+        console.log(req.originalUrl);
+
+        return res
+            .status(200)
+            .json({ status: "OK", message: "Manifest sent successfully" });
+    }
+    )
+    .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
+        console.log('Reached media/chunk...m4s');
+        // console.log(req.session);
+
+        const bandwidth = req.params["bandwidth"];
+        const segment_num = req.params["segment"];
+        // console.log("Req params:", bandwidth, segment_num)
+
+        if (!req.session.userId) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User not logged in" });
+        }
+
+        return res
+            .status(200)
+            .json({ status: "OK", message: "Manifest sent successfully" });
+    }
+    )
 
 module.exports = router;
