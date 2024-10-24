@@ -136,14 +136,14 @@ router
     // If user's verification key is correct, we log the user in and redirect them to home page
     // If it is not correct, we redirect to login page
     if (key !== data.verificationKey) {
-      res.sendFile(__dirname + "../public/components/LoginPage.html");
+      res.sendFile(__dirname + "/../public/components/LoginPage.html");
       //   return res
       //     .status(200)
       //     .json({ status: "ERROR", error: true, message: "Invalid key" });
     } else {
       const bruh = await User.updateOne({ _id: data._id }, { verified: true });
       console.log(bruh);
-      res.sendFile(__dirname + "../public/index.html");
+      res.sendFile(__dirname + "/../public/index.html");
     }
     // return res
     //   .status(200)
