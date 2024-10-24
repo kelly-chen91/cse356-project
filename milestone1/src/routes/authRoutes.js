@@ -144,8 +144,8 @@ router
       //     .status(200)
       //     .json({ status: "ERROR", error: true, message: "Invalid key" });
     } else {
-      const bruh = await User.updateOne({ _id: data._id }, { verified: true });
-      console.log(bruh);
+      const user = await User.updateOne({ _id: data._id }, { verified: true });
+      console.log(user);
       // Generate Session here
       req.session.userId = user._id;
 
