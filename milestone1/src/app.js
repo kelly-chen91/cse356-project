@@ -17,7 +17,7 @@ app.use(
     cookie: { httpOnly: true, maxAge: 100 * 60 * 60 },
     resave: false,
     saveUninitialize: false,
-    // store: MongoStore.create({ mongoUrl: "mongodb://127.0.0.1/warmup" }),
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URL }),
   })
 );
 
