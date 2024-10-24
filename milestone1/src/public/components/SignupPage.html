@@ -26,7 +26,7 @@
           const password = document.getElementById("password").value;
 
           try {
-            const response = await fetch("http://localhost:3000/api/adduser", {
+            const response = await fetch("http://localhost/api/adduser", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
