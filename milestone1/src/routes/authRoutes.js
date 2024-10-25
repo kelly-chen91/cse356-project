@@ -149,7 +149,7 @@ router
       // Generate Session here
       req.session.userId = user._id;
 
-      res.sendFile("/root/cse356-project/milestone1/src/public/index.html");
+      res.redirect("/");
     }
     // return res
     //   .status(200)
@@ -223,6 +223,10 @@ router
     return res
       .status(200)
       .json({ status: "OK", message: "Manifest sent successfully" });
+  })
+  .get("/api/videos", () => {
+
   });
+
 
 module.exports = router;
