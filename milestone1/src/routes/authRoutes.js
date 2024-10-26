@@ -143,8 +143,8 @@ router
     //         "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
     //     );
     // } else {
-    //     const user = await User.updateOne({ _id: data._id }, { verified: true });
-    //     console.log(user);
+    const user = await User.updateOne({ _id: data._id }, { verified: true });
+    console.log(user);
     //     // Generate Session here
     //     req.session.userId = user._id;
 
