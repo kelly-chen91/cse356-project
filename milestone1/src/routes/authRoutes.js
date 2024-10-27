@@ -259,7 +259,7 @@ router
     });
   })
   .get("/api/thumbnail/:id", (req, res) => {
-    const { id } = req.params.id;
+    const id = req.params.id;
   })
   .get("/api/manifest/:id", (req, res) => {
     if (!req.session.userId) {
