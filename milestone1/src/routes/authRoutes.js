@@ -257,10 +257,10 @@ router
       });
     });
   })
-  .get("/api/thumbnail/:id", (res, req) => {
+  .get("/api/thumbnail/:id", (req, res) => {
     const { id } = req.params.id;
   })
-  .get("/api/manifest/:id", (res, req) => {
+  .get("/api/manifest/:id", (req, res) => {
     console.log(`id: ${req.params}`);
 
     const { id } = req.params.id;
