@@ -179,17 +179,15 @@ router
 
     return res.sendFile("/root/MPEG-DASH_media_player/media/output.mpd");
   })
-  .get("/media/:id_chunk/_chunk_:bandwidth/_segment_:segment.m4s", async (req, res) => {
-    console.log("Reached media/chunk...m4s");
-    console.log("body: ", req.body);
+  .get("/media/:path", async (req, res) => {
+    console.log("Reached media/:path");
+    console.log("path: ", req.params.path);
 
-    const id_chunk = req.params.id_chunk;
-    const bandwidth = req.params.bandwidth;
-    const segment_num = req.params.segment;
-    // console.log("Req params:", id, bandwidth, segment_num);
-    res.send(
-      `ID Chunk: ${id_chunk}, Bandwidth: ${bandwidth}, Segment: ${segment_num}`
-    );
+    const filePath = req.params.path;
+
+    const mediaPath = path.resolve("../milestone1/media");
+
+    res.sendFile(`${mediaPath}/${filePath}`);
 
     // if (!req.session.userId) {
     //   return res
@@ -197,9 +195,9 @@ router
     //     .json({ status: "ERROR", error: true, message: "User not logged in" });
     // }
 
-    return res
-      .status(200)
-      .json({ status: "OK", message: "Manifest sent successfully" });
+    // return res
+    //   .status(200)
+    //   .json({ status: "OK", message: "Manifest sent successfully" });
   })
   .get("/media", async (req, res) => {
     console.log("Reached /media");
