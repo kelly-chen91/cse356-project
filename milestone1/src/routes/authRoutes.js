@@ -179,7 +179,7 @@ router
 
     return res.sendFile("/root/MPEG-DASH_media_player/media/output.mpd");
   })
-  .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
+  .get("/media/:id_chunk_:bandwidth_:segment.m4s", async (req, res) => {
     console.log("Reached media/chunk...m4s");
     console.log("body: ", req.body);
 
@@ -188,11 +188,11 @@ router
     const id = req.params.id;
     console.log("Req params:", bandwidth, segment_num, id);
 
-    if (!req.session.userId) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
+    // if (!req.session.userId) {
+    //   return res
+    //     .status(200)
+    //     .json({ status: "ERROR", error: true, message: "User not logged in" });
+    // }
 
     return res
       .status(200)
@@ -262,7 +262,7 @@ router
     const id = req.params.id;
 
     // To be determined, we can change the path to resolve it.
-    const thumbnailPath = path.resolve(`../../media/${id}/thumbnail.jpg`);
+    const thumbnailPath = path.resolve(`../../media/${id}_thumbnail.jpg`);
 
     if (!fs.existsSync(thumbnailPath)) {
       return res.status(200).json({ status: "ERROR", "error":true, message: "Thumbnail not found" });
@@ -281,8 +281,8 @@ router
     console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("../milestone1/media");
-    console.log(`path: ${mediaPath}/${id}/output.mpd`);
-    res.sendFile(`${mediaPath}/${id}/output.mpd`);
+    console.log(`path: ${mediaPath}/${id}_output.mpd`);
+    res.sendFile(`${mediaPath}/${id}_output.mpd`);
   });
 
 module.exports = router;
