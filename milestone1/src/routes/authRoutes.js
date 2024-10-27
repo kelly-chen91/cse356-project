@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const User = require("../models/users");
 const bcrypt = require("bcrypt");
@@ -135,25 +137,22 @@ router
     console.log("user found");
     // If user's verification key is correct, we log the user in and redirect them to home page
     // If it is not correct, we redirect to login page
-    if (key !== data.verificationKey) {
-      res.sendFile(
-        __dirname +
-          "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
-      );
-      //   return res
-      //     .status(200)
-      //     .json({ status: "ERROR", error: true, message: "Invalid key" });
-    } else {
-      const user = await User.updateOne({ _id: data._id }, { verified: true });
-      console.log(user);
-      // Generate Session here
-      req.session.userId = user._id;
+    // if (key !== data.verificationKey) {
+    //     res.sendFile(
+    //         __dirname +
+    //         "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
+    //     );
+    // } else {
+    const user = await User.updateOne({ _id: data._id }, { verified: true });
+    console.log(user);
+    //     // Generate Session here
+    //     req.session.userId = user._id;
 
-      res.sendFile("/root/cse356-project/milestone1/src/public/index.html");
-    }
-    // return res
-    //   .status(200)
-    //   .json({ status: "OK", message: "User verified successfully" });
+    //     res.redirect("/");
+    // }
+    return res
+      .status(200)
+      .json({ status: "OK", message: "User verified successfully" });
   })
   .post("/api/check-auth", (req, res) => {
     if (!req.session.userId) {
@@ -223,6 +222,46 @@ router
     return res
       .status(200)
       .json({ status: "OK", message: "Manifest sent successfully" });
+  })
+  .post("api/videos", (req, res) => {
+    const { count } = req.body;
+    console.log(`Sending ${count} videos to frontend...`);
+
+    const videosPath = path.resolve("../milestone1/videos");
+
+    const videoNames = fs.readdirSync(videosPath);
+    videoNames.pop(); // remove m1.json
+
+    fs.readFile(path.join(videosPath, "m1.json"), "utf8", (err, content) => {
+      if (err) {
+        return res
+          .status(200)
+          .json({ status: "ERROR", error: true, message: err.message });
+      }
+
+      const videoMetadatas = [];
+      const videoList = JSON.parse(content);
+      for (let i = 0; i < count; i++) {
+        const videoName =
+          videoNames[Math.floor(Math.random() * videoNames.length)];
+
+        videoMetadatas.push({
+          title: videoName,
+          description: videoList[videoName],
+        });
+      }
+      return res.status(200).json({
+        status: "OK",
+        videos: videoMetadatas,
+        message: "Successfully sent videos",
+      });
+    });
+  })
+  .get("/api/thumbnail/:id", (res, req) => {
+    const { id } = req.params.id;
+  })
+  .get("/api/manifest/:id", (res, req) => {
+    const { id } = req.params.id;
   });
 
 module.exports = router;
