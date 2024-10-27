@@ -1,13 +1,13 @@
 #!/bin/bash
-
+# Make sure your current directory is milestone1
 # Loop over all mp4 files in the "videos" folder
 for video in videos/*.mp4; do
     # Get the filename without the path and extension
     filename=$(basename "$video" .mp4)
     
     # Create a directory named after the video file
-    mkdir -p "media/$filename"
-    output_dir="media/$filename"
+    mkdir -p "media"
+    output_dir="media"
     
     # Run the ffmpeg command and place output in the respective folder
     ffmpeg -i "$video" \
@@ -20,9 +20,10 @@ for video in videos/*.mp4; do
     -map 0:v -b:v:6 3134k -s:v:6 1024x576 \
     -map 0:v -b:v:7 4952k -s:v:7 1280x720 \
     -f dash -seg_duration 10 -use_template 1 -use_timeline 1 \
-    -init_seg_name "chunk_\$Bandwidth\$_init.m4s" \
-    -media_seg_name "chunk_\$Bandwidth\$_\$Number\$.m4s" \
+    -init_seg_name "${filename}_chunk_\$Bandwidth\$_init.m4s" \
+    -media_seg_name "${filename}_chunk_\$Bandwidth\$_\$Number\$.m4s" \
     -adaptation_sets "id=0,streams=v" \
-    "$output_dir/output.mpd"
-    # echo "Processed $video to $output_dir/output.mpd"
+    "${output_dir}/${filename}_output.mpd"
+    echo "Processed $video to ${filename}_output.mpd"
+    break
 done
