@@ -272,8 +272,8 @@ router
     console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("../milestone1/media");
-    console.log(`path: ${mediaPath}/${id}/output.mpd`);
-    res.sendFile(`${mediaPath}/${id}/output.mpd`);
+    console.log(`path: ${mediaPath}/${id}_output.mpd`);
+    res.sendFile(`${mediaPath}/${id}_output.mpd`);
   });
 
 module.exports = router;
