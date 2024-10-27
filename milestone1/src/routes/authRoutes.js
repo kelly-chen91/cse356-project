@@ -261,7 +261,7 @@ router
     const { id } = req.params.id;
   })
   .get("/api/manifest/:id", (req, res) => {
-    const { id } = req.params.id;
+    const id = req.params.id;
     console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("../milestone1/media");
