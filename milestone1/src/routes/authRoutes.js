@@ -183,10 +183,10 @@ router
     console.log("Reached media/chunk...m4s");
     console.log("body: ", req.body);
 
-    const bandwidth = req.params["bandwidth"];
-    const segment_num = req.params["segment"];
-    const id = req.params.id;
-    console.log("Req params:", bandwidth, segment_num, id);
+    const id = req.params.id_chunk;
+    const bandwidth = req.params.bandwidth;
+    const segment_num = req.params.segment;
+    console.log("Req params:", id, bandwidth, segment_num);
 
     // if (!req.session.userId) {
     //   return res
@@ -265,7 +265,9 @@ router
     const thumbnailPath = path.resolve(`../../media/${id}_thumbnail.jpg`);
 
     if (!fs.existsSync(thumbnailPath)) {
-      return res.status(200).json({ status: "ERROR", "error":true, message: "Thumbnail not found" });
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
     }
 
     res.sendFile(thumbnailPath);
