@@ -261,6 +261,12 @@ router
     const { id } = req.params.id;
   })
   .get("/api/manifest/:id", (req, res) => {
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
+
     const id = req.params.id;
     console.log(`id: ${id}`);
 
