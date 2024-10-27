@@ -265,6 +265,7 @@ router
     console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("../milestone1/media");
+    console.log(`path: ${mediaPath}/${id}`);
     res.sendFile(`${mediaPath}/${id}`);
   });
 
