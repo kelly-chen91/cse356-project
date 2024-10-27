@@ -2,3 +2,4 @@ milestone1/node_modules
 milestone1/package-lock.json
 milestone1/videos
 milestone1/media
+*.vagrant

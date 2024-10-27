@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+	# Specify the box to use
+	config.vm.box = "bento/ubuntu-22.04"
+
+	# Set a private network with a static IP
+	config.vm.network "private_network", ip: "192.168.33.10"
+
+	# Name the VM
+	config.vm.provider "virtualbox" do |vb|
+		# Set the name of the VM to 'zeno'
+		vb.name = "zeno"
+
+		# Show the GUI during startup (optional)
+		vb.gui = true
+
+		# Set memory to 4 GB (4096 MB)
+		vb.memory = "4096"
+
+		# Set the number of CPUs to 2
+		vb.cpus = 2
+	end
+
+	# Sync the repo with /vagrant on the VM
+	config.vm.synced_folder "../milestone1/", "/vagrant"
+
+	# Add a shell provisioner to run your setup.sh script
+	config.vm.provision "shell", path: "../milestone1/setup.sh"
+
+	# Optional: Inline script for additional configuration
+	# config.vm.provision "shell", inline: <<-SHELL
+	# 	echo "Running additional setup tasks..."
+	# 	sudo apt-get update
+	# 	sudo apt-get install -y nginx
+	# SHELL
+end
