@@ -183,18 +183,15 @@ router
     console.log("Reached media/:path");
     console.log("path: ", req.params.path);
 
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
+
     const filePath = req.params.path;
-
     const mediaPath = path.resolve("../milestone1/media");
-
     res.sendFile(`${mediaPath}/${filePath}`);
-
-    // if (!req.session.userId) {
-    //   return res
-    //     .status(200)
-    //     .json({ status: "ERROR", error: true, message: "User not logged in" });
-    // }
-
     // return res
     //   .status(200)
     //   .json({ status: "OK", message: "Manifest sent successfully" });
