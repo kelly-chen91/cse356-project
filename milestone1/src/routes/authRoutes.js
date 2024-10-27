@@ -262,6 +262,7 @@ router
   })
   .get("/api/manifest/:id", (res, req) => {
     const { id } = req.params.id;
+    console.log(`id: ${id}`);
     const mediaPath = path.resolve("../milestone1/media");
     res.sendFile(`${mediaPath}/${id}`);
   });
