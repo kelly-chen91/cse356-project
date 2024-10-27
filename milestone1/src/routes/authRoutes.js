@@ -188,11 +188,11 @@ router
     const id = req.params.id;
     console.log("Req params:", bandwidth, segment_num, id);
 
-    if (!req.session.userId) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
+    // if (!req.session.userId) {
+    //   return res
+    //     .status(200)
+    //     .json({ status: "ERROR", error: true, message: "User not logged in" });
+    // }
 
     return res
       .status(200)
