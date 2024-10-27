@@ -181,11 +181,12 @@ router
   })
   .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
     console.log("Reached media/chunk...m4s");
-    // console.log(req.session);
+    console.log("body: ", req.body);
 
     const bandwidth = req.params["bandwidth"];
     const segment_num = req.params["segment"];
-    // console.log("Req params:", bandwidth, segment_num)
+    const id = req.params.id;
+    console.log("Req params:", bandwidth, segment_num, id);
 
     if (!req.session.userId) {
       return res
@@ -205,24 +206,24 @@ router
       .status(200)
       .json({ status: "OK", message: "Manifest sent successfully" });
   })
-  .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
-    console.log("Reached media/chunk...m4s");
-    // console.log(req.session);
+  //   .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
+  //     console.log("Reached media/chunk...m4s");
+  //     // console.log(req.session);
 
-    const bandwidth = req.params["bandwidth"];
-    const segment_num = req.params["segment"];
-    // console.log("Req params:", bandwidth, segment_num)
+  //     const bandwidth = req.params["bandwidth"];
+  //     const segment_num = req.params["segment"];
+  //     // console.log("Req params:", bandwidth, segment_num)
 
-    if (!req.session.userId) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
+  //     if (!req.session.userId) {
+  //       return res
+  //         .status(200)
+  //         .json({ status: "ERROR", error: true, message: "User not logged in" });
+  //     }
 
-    return res
-      .status(200)
-      .json({ status: "OK", message: "Manifest sent successfully" });
-  })
+  //     return res
+  //       .status(200)
+  //       .json({ status: "OK", message: "Manifest sent successfully" });
+  //   })
   .post("api/videos", (req, res) => {
     const { count } = req.body;
     console.log(`Sending ${count} videos to frontend...`);
@@ -257,11 +258,22 @@ router
       });
     });
   })
-  .get("/api/thumbnail/:id", (res, req) => {
-    const { id } = req.params.id;
+  .get("/api/thumbnail/:id", (req, res) => {
+    const id = req.params.id;
   })
-  .get("/api/manifest/:id", (res, req) => {
-    const { id } = req.params.id;
+  .get("/api/manifest/:id", (req, res) => {
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
+
+    const id = req.params.id;
+    console.log(`id: ${id}`);
+
+    const mediaPath = path.resolve("../milestone1/media");
+    console.log(`path: ${mediaPath}/${id}/output.mpd`);
+    res.sendFile(`${mediaPath}/${id}/output.mpd`);
   });
 
 module.exports = router;
