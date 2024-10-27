@@ -5,8 +5,8 @@
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
   </head>
   <body>
-    <div>
-        <!-- Show List of Thumbnails -->
+    <div id="videoList">
+      <!-- Show List of Thumbnails -->
     </div>
     <!-- <video id="videoPlayer" controls width="600"></video>
     <div>
@@ -54,6 +54,19 @@
           }
         });
     </script>
-    Hi Bao -->
+    -->
+    <script>
+      const videoListContainer = document.getElementById("videoList");
+      const count = 10;
+      const videoList = await fetch("http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ count }),
+      });
+
+      
+    </script>
   </body>
 </html>
