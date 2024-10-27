@@ -181,7 +181,7 @@ router
   })
   .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
     console.log("Reached media/chunk...m4s");
-    // console.log(req.session);
+    console.log("body: ", req.body);
 
     const bandwidth = req.params["bandwidth"];
     const segment_num = req.params["segment"];
