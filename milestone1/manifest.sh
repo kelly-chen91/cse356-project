@@ -24,5 +24,7 @@ for video in videos/*.mp4; do
     -media_seg_name "chunk_\$Bandwidth\$_\$Number\$.m4s" \
     -adaptation_sets "id=0,streams=v" \
     "$output_dir/output.mpd"
+
+    ffmpeg -i "$video" -vf "scale=320:180" -frames:v 1 "$output_dir/thumbnail.jpg"
     # echo "Processed $video to $output_dir/output.mpd"
 done
