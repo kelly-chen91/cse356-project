@@ -183,10 +183,13 @@ router
     console.log("Reached media/chunk...m4s");
     console.log("body: ", req.body);
 
-    const id = req.params.id_chunk;
+    const id_chunk = req.params.id_chunk;
     const bandwidth = req.params.bandwidth;
     const segment_num = req.params.segment;
-    console.log("Req params:", id, bandwidth, segment_num);
+    // console.log("Req params:", id, bandwidth, segment_num);
+    res.send(
+      `ID Chunk: ${id_chunk}, Bandwidth: ${bandwidth}, Segment: ${segment_num}`
+    );
 
     // if (!req.session.userId) {
     //   return res
