@@ -262,7 +262,7 @@ router
     const id = req.params.id;
 
     // To be determined, we can change the path to resolve it.
-    const thumbnailPath = path.resolve(`../../media/${id}/thumbnail.jpg`);
+    const thumbnailPath = path.resolve(`../../media/${id}_thumbnail.jpg`);
 
     if (!fs.existsSync(thumbnailPath)) {
       return res.status(200).json({ status: "ERROR", "error":true, message: "Thumbnail not found" });
