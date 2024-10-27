@@ -260,6 +260,15 @@ router
   })
   .get("/api/thumbnail/:id", (req, res) => {
     const id = req.params.id;
+
+    // To be determined, we can change the path to resolve it.
+    const thumbnailPath = path.resolve(`../../media/${id}/thumbnail.jpg`);
+
+    if (!fs.existsSync(thumbnailPath)) {
+      return res.status(200).json({ status: "ERROR", "error":true, message: "Thumbnail not found" });
+    }
+
+    res.sendFile(thumbnailPath);
   })
   .get("/api/manifest/:id", (req, res) => {
     if (!req.session.userId) {
