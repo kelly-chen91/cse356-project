@@ -25,5 +25,4 @@ for video in videos/*.mp4; do
     -adaptation_sets "id=0,streams=v" \
     "${output_dir}/${filename}_output.mpd"
     echo "Processed $video to ${filename}_output.mpd"
-    break
 done
