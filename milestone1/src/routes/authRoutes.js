@@ -179,7 +179,7 @@ router
 
     return res.sendFile("/root/MPEG-DASH_media_player/media/output.mpd");
   })
-  .get("/media/:id_chunk_:bandwidth_:segment.m4s", async (req, res) => {
+  .get("/media/:id_chunk_chunk_:bandwidth_:segment.m4s", async (req, res) => {
     console.log("Reached media/chunk...m4s");
     console.log("body: ", req.body);
 
