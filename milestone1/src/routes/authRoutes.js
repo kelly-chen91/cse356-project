@@ -259,6 +259,9 @@ router
   })
   .get("/api/thumbnail/:id", (res, req) => {
     const { id } = req.params.id;
+  })
+  .get("/api/manifest/:id", (res, req) => {
+    const { id } = req.params.id;
   });
 
 module.exports = router;
