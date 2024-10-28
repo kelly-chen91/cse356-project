@@ -25,7 +25,5 @@ for video in videos/*.mp4; do
     -adaptation_sets "id=0,streams=v" \
     "${output_dir}/${filename}_output.mpd"
 
-    ffmpeg -i "$video" -vf "scale=320:180" -frames:v 1 "${output_dir}/${filename}_thumbnail.jpg"
-
     echo "Processed $video to ${filename}_output.mpd"
 done
