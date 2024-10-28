@@ -7,7 +7,7 @@ for video in videos/*.mp4; do
 
     # Reprocess the video to 16:9 with black padding.
     ffmpeg -i "$video" \
-    -vf "scale=w=iw*min(1280/iw\,720/ih):h=ih*min(1280/iw\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\,720/ih))/2:(720-ih*min(1280/iw\,720/ih))/2" \
+    -vf "scale=w=iw*min(16/9/iw*ih\,1):h=ih*min(16/9/iw*ih\,1),pad=w=ceil(ih*16/9):h=ih:(ow-iw)/2:(oh-ih)/2" \
     -c:a copy \
     "videos/${filename}.mp4" -y
     
