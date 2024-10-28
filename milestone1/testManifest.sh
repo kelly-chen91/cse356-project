@@ -1,12 +1,13 @@
 # Run the ffmpeg command and place output in the respective folder
 video="videos/3960164-uhd_2160_4096_25fps.mp4"
 filename=$(basename "$video" .mp4)
+output_dir="test"
 
 # Reprocess the video to 16:9 with black padding.
 ffmpeg -i "$video" \
 -vf "scale=w=iw*min(1280/iw\,720/ih):h=ih*min(1280/iw\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\,720/ih))/2:(720-ih*min(1280/iw\,720/ih))/2" \
 -c:a copy \
-"test/${filename}.mp4"
+"${output_dir}/${filename}.mp4"
 
 # Chunk the videos for video streaming.
 ffmpeg -i "$video" \
@@ -22,4 +23,4 @@ ffmpeg -i "$video" \
 -init_seg_name "${filename}_chunk_\$RepresentationID\$_init.m4s" \
 -media_seg_name "${filename}_chunk_\$RepresentationID\$_\$Bandwidth\$_\$Number\$.m4s" \
 -adaptation_sets "id=0,streams=v" \
-"test/test_output.mpd"
+"${output_dir}/${filename}_output.mpd"
