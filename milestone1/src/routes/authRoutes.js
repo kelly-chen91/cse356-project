@@ -204,13 +204,14 @@ router
       .status(200)
       .json({ status: "OK", message: "Manifest sent successfully" });
   })
-  //   .get("/media/chunk_:bandwidth_:segment.m4s", async (req, res) => {
+  //   .get("/media/:id_chunk_:bandwidth_:segment.m4s", async (req, res) => {
   //     console.log("Reached media/chunk...m4s");
   //     // console.log(req.session);
 
+  //     const id = req.params["id"];
   //     const bandwidth = req.params["bandwidth"];
   //     const segment_num = req.params["segment"];
-  //     // console.log("Req params:", bandwidth, segment_num)
+  //     console.log(`Req params: ${id}, ${bandwidth}, ${segment_num}`);
 
   //     if (!req.session.userId) {
   //       return res
@@ -260,7 +261,9 @@ router
     const id = req.params.id;
 
     // To be determined, we can change the path to resolve it.
-    const thumbnailPath = path.resolve(`../../media/${id}_thumbnail.jpg`);
+    const thumbnailPath = path.resolve(
+      `../milestone1/media/${id}_thumbnail.jpg`
+    );
 
     if (!fs.existsSync(thumbnailPath)) {
       return res
