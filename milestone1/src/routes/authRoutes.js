@@ -258,6 +258,8 @@ router
     });
   })
   .get("/api/thumbnail/:id", (req, res) => {
+    console.log("Reached api/thumbnail/:id");
+
     const id = req.params.id;
 
     // To be determined, we can change the path to resolve it.
@@ -271,9 +273,12 @@ router
         .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
     }
 
+    console.log("Sending thumbnail from path:", thumbnailPath);
     res.sendFile(thumbnailPath);
   })
   .get("/api/manifest/:id", (req, res) => {
+    console.log("Reached api/manifest/:id");
+
     if (!req.session.userId) {
       return res
         .status(200)

@@ -9,7 +9,11 @@ for video in videos/*.mp4; do
     mkdir -p "media"
     output_dir="media"
 
-    ffmpeg -i "$video" -vf "scale=320:180" -frames:v 1 "${output_dir}/${filename}_thumbnail.jpg"
+    ffmpeg -i "$video" \
+    -vf "scale=w=iw*min(320/iw\,180/ih):h=ih*min(320/iw\,180/ih),pad=320:180:(320-iw*min(320/iw\,180/ih))/2:(180-ih*min(320/iw\,180/ih))/2" \
+    -frames:v 1 \
+    -c:a copy \
+    "${output_dir}/${filename}_thumbnail.jpg" -y
 
     echo "Generated thumbnail of $video at ${output_dir}/${filename}_thumbnail.jpg"
 done
