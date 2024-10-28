@@ -179,24 +179,22 @@ router
 
     return res.sendFile("/root/MPEG-DASH_media_player/media/output.mpd");
   })
-  .get("/media/:id_chunk_:bandwidth_:segment.m4s", async (req, res) => {
-    console.log("Reached media/chunk...m4s");
-    console.log("body: ", req.body);
+  .get("/media/:path", async (req, res) => {
+    console.log("Reached media/:path");
+    console.log("path: ", req.params.path);
 
-    const bandwidth = req.params["bandwidth"];
-    const segment_num = req.params["segment"];
-    const id = req.params.id;
-    console.log("Req params:", bandwidth, segment_num, id);
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
 
-    // if (!req.session.userId) {
-    //   return res
-    //     .status(200)
-    //     .json({ status: "ERROR", error: true, message: "User not logged in" });
-    // }
-
-    return res
-      .status(200)
-      .json({ status: "OK", message: "Manifest sent successfully" });
+    const filePath = req.params.path;
+    const mediaPath = path.resolve("../milestone1/media");
+    res.sendFile(`${mediaPath}/${filePath}`);
+    // return res
+    //   .status(200)
+    //   .json({ status: "OK", message: "Manifest sent successfully" });
   })
   .get("/media", async (req, res) => {
     console.log("Reached /media");
@@ -265,7 +263,9 @@ router
     const thumbnailPath = path.resolve(`../../media/${id}_thumbnail.jpg`);
 
     if (!fs.existsSync(thumbnailPath)) {
-      return res.status(200).json({ status: "ERROR", "error":true, message: "Thumbnail not found" });
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
     }
 
     res.sendFile(thumbnailPath);
