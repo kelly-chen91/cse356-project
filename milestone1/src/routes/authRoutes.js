@@ -287,6 +287,7 @@ router
         .json({ status: "ERROR", error: true, message: "User not logged in" });
     }
 
+    console.log(`id: ${id}`);
     var id = req.params.id;
     if (id.split(".").length == 1) {
         id += "_output.mpd"
