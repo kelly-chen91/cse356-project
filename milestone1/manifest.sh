@@ -1,15 +1,15 @@
 #!/bin/bash
 # Make sure your current directory is milestone1
 # Loop over all mp4 files in the "videos" folder
-for video in videos/*.mp4; do
+for video in padded_videos/*.mp4; do
     # Get the filename without the path and extension
     filename=$(basename "$video" .mp4)
 
-    # Reprocess the video to 16:9 with black padding.
-    ffmpeg -i "$video" \
-    -vf "scale=w=iw*min(16/9/iw*ih\,1):h=ih*min(16/9/iw*ih\,1),pad=w=ceil(ih*16/9):h=ih:(ow-iw)/2:(oh-ih)/2" \
-    -c:a copy \
-    "videos/${filename}.mp4" -y
+    # # Reprocess the video to 16:9 with black padding.
+    # ffmpeg -i "$video" \
+    # -vf "scale=w=iw*min(16/9/iw*ih\,1):h=ih*min(16/9/iw*ih\,1),pad=w=ceil(ih*16/9):h=ih:(ow-iw)/2:(oh-ih)/2" \
+    # -c:a copy \
+    # "videos/${filename}.mp4" -y
     
     # Create a directory named after the video file
     mkdir -p "media"

@@ -58,6 +58,16 @@ app.get("/SignupPage.html", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "components", "SignupPage.html"));
 });
 
+// Get user to sign up page
+app.get("/play/:id", (req, res) => {
+    const id = req.params.id;
+    console.log("Reached /play/:id => id =", id);
+
+    res.sendFile(path.join(__dirname, "/public/play.html"));
+});
+
+
+
 // Start the server
 const PORT = process.env.PORT || 80;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

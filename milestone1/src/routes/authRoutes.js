@@ -223,7 +223,7 @@ router
   //       .status(200)
   //       .json({ status: "OK", message: "Manifest sent successfully" });
   //   })
-  .post("api/videos", (req, res) => {
+  .post("/api/videos", (req, res) => {
     const { count } = req.body;
     console.log(`Sending ${count} videos to frontend...`);
 
@@ -241,15 +241,17 @@ router
 
       const videoMetadatas = [];
       const videoList = JSON.parse(content);
+      const start_index = Math.floor(Math.random() * videoNames.length);
       for (let i = 0; i < count; i++) {
-        const videoName =
-          videoNames[Math.floor(Math.random() * videoNames.length)];
+        const videoName = videoNames[(start_index + i) % (videoNames.length - 1)];
 
         videoMetadatas.push({
+          id: videoName.split(".")[0],
           title: videoName,
           description: videoList[videoName],
         });
       }
+    //   console.log(videoMetadatas);
       return res.status(200).json({
         status: "OK",
         videos: videoMetadatas,
@@ -285,12 +287,27 @@ router
         .json({ status: "ERROR", error: true, message: "User not logged in" });
     }
 
-    const id = req.params.id;
+    var id = req.params.id;
+    if (id.split(".").length == 1) {
+        id += "_output.mpd"
+    }
     console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("../milestone1/media");
-    console.log(`path: ${mediaPath}/${id}_output.mpd`);
-    res.sendFile(`${mediaPath}/${id}_output.mpd`);
+    console.log(`path: ${mediaPath}/${id}`);
+    // res.sendFile(`${mediaPath}/${id}_output.mpd`);
+    res.sendFile(`${mediaPath}/${id}`);
   });
+//   .get("/play/:id", (req, res) => {
+//     const id = req.params.id;
+//     console.log("Reached /play/:id => id =", id);
+
+//     const publicPath = path.resolve("../milestone1/src/public");
+
+//     console.log(`path: /play.html/${id}`);
+//     window.location.href = `/play.html/${id}`;
+    
+//     // res.redirect(`/play.html/${id}`);
+//   })
 
 module.exports = router;
