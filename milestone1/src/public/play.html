@@ -10,87 +10,150 @@
     <script>
       const container = document.getElementById("container");
 
-    //   const id = window.location.pathname.split("/")[2];
+      //   const id = window.location.pathname.split("/")[2];
 
-    //   var video = document.getElementById("videoPlayer");
-    //   var player = dashjs.MediaPlayer().create();
+      //   var video = document.getElementById("videoPlayer");
+      //   var player = dashjs.MediaPlayer().create();
 
-    //   console.log(id)
-    //   player.initialize(video, `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`, true);
+      //   console.log(id)
+      //   player.initialize(video, `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`, true);
 
-    //   document
-    //     .getElementById("playPauseBtn")
-    //     .addEventListener("click", function () {
-    //       if (video.paused) {
-    //         video.play();
-    //       } else {
-    //         video.pause();
-    //       }
-    //     }
-    //   );
-        ////////////////////////////////////////////////////////////////////
+      //   document
+      //     .getElementById("playPauseBtn")
+      //     .addEventListener("click", function () {
+      //       if (video.paused) {
+      //         video.play();
+      //       } else {
+      //         video.pause();
+      //       }
+      //     }
+      //   );
+      ////////////////////////////////////////////////////////////////////
 
-        async function loadNextVideo() { 
-            try {
-                const response = await fetch()
-            } catch (error) {
-                console.log("Error fetching videos:", error);
-            }
-        }
-        window.addEventListener("scroll", () => {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
-                loadNextVideo();
-            }
-        })
-
-        async function getVideos() {
-        try {
-            const count = 10;
-            const response = await fetch("http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos", {
-                method: "POST",
-                headers: {
-                "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ count }),
-            });
-
-            if (response.ok) {
-                const videoMetadatas = await response.json();
-                const videos = videoMetadatas.videos;
-
-                videos.forEach(async video => {
-                    const id = video.id;
-
-                    const videoContainer = document.createElement("div");
-
-                    const _video = document.createElement("video");
-                    var player = dashjs.MediaPlayer().create();
-
-                    console.log(id)
-                    player.initialize(video, `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`, true);
-                    _video.controls = true;
-                    const playPauseBtn = document.createElement("div");
-                    playPauseBtn.addEventListener("click", function () {
-                        if (_video.paused) {
-                            _video.play();
-                        } else {
-                            _video.pause();
-                        }}
-                    );
-                    videoContainer.appendChild(_video);
-                    videoContainer.appendChild(playPauseBtn);
-                    container.appendChild(videoContainer);
-                });                
-            }
-        } catch (error) {
-            console.log("Error occured during fetch:", error);
-        }
+      // Initialize video with the id with /api/manifest/id call and create video player
+      function loadVideo(id) {
+        var video = document.createElement("video");
+        var videoContainer = document.createElement("div");
+        video.controls = true;
+        var player = dashjs.MediaPlayer().create();
+        // Create play/pause button 
+        const playPauseBtn = document.createElement("div");
+        playPauseBtn.addEventListener("click", function () {
+          if (video.paused) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+        videoContainer.appendChild(video);
+        videoContainer.appendChild(playPauseBtn);
+        container.appendChild(videoContainer);
+        // TODO: Need to initialize video 
       }
 
-      window.onload = async function() {
-        getVideos();
+      // Gets :count video ids and metadata and compile them to a list. Returns [] if response fails
+
+      async function getVideoList(count) {
+        const response = await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ count }),
+          }
+        );
+
+        if (response.ok) {
+          const videoMetadatas = await response.json();
+          return videoMetadatas.videos;
+        }
+        return [];
       }
+
+      //window.addEventListener("scroll", () => {
+      //  if (
+      //    window.innerHeight + window.scrollY >=
+      //    document.body.offsetHeight - 50
+      //  ) {
+      //    //loadNextVideo();
+      //  }
+      //});
+
+      // call getVideoList to save to videos
+      const videos = getVideoList(10);
+
+      currentVideoIndex = 0;
+
+      window.addEventListener("scroll", (event) => {
+        if (event.deltaY > 0) {
+          // Scrolling down
+          currentVideoIndex = Math.min(
+            currentVideoIndex + 1,
+            videos.length - 1
+          );
+        } else {
+          // Scrolling up
+          currentVideoIndex = Math.max(currentVideoIndex - 1, 0);
+        }
+        loadVideo(videos[currentVideoIndex].id);
+      });
+
+      //async function getVideos() {
+      //  try {
+      //    const count = 10;
+      //    const response = await fetch(
+      //      "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
+      //      {
+      //        method: "POST",
+      //        headers: {
+      //          "Content-Type": "application/json",
+      //        },
+      //        body: JSON.stringify({ count }),
+      //      }
+      //    );
+      //
+      //    if (response.ok) {
+      //      const videoMetadatas = await response.json();
+      //      const videos = videoMetadatas.videos;
+      //
+      //      videos.forEach(async (video) => {
+      //        const id = video.id;
+      //
+      //        const videoContainer = document.createElement("div");
+      //
+      //        const _video = document.createElement("video");
+      //        var player = dashjs.MediaPlayer().create();
+      //
+      //        console.log(id);
+      //        player.initialize(
+      //          video,
+      //          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`,
+      //          true
+      //        );
+      //        _video.controls = true;
+      //        const playPauseBtn = document.createElement("div");
+      //        playPauseBtn.addEventListener("click", function () {
+      //          if (_video.paused) {
+      //            _video.play();
+      //          } else {
+      //            _video.pause();
+      //          }
+      //        });
+      //        videoContainer.appendChild(_video);
+      //        videoContainer.appendChild(playPauseBtn);
+      //        container.appendChild(videoContainer);
+      //      });
+      //    }
+      //  } catch (error) {
+      //    console.log("Error occured during fetch:", error);
+      //  }
+      //}
+      //
+      //window.onload = async function () {
+      //  getVideos();
+      //};
     </script>
-   
-     </body>
+  </body>
 </html>
