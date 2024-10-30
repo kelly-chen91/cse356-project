@@ -1,316 +1,113 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>MPEG-DASH Media Player</title>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+  </head>
 
-<head>
-  <title>MPEG-DASH Media Player</title>
-  <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-</head>
+  <body>
+    <div id="container"></div>
+    <script>
+      const container = document.getElementById("container");
 
-<body>
-  <!-- <video id="videoPlayer" controls width="600"></video>
-    <div>
-        <div id="playPauseBtn">Play/Pause</div>
-        <button id="seekBtn">Seek</button>
-        <select id="resolutionSelect">
-        <option value="auto">Auto</option>
-        <option value="480p">480p</option>
-        <option value="720p">720p</option>
-        <option value="1080p">1080p</option>
-        </select>
-    </div> -->
-  <div id="container"></div>
+      const videos = [];
 
+      const count = 1;
+      async function getVideos() {
+        const response = await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ count }),
+          }
+        );
 
-  <script>
-    // const playPauseBtn = document.getElementById('playPauseBtn');
-    // const seekBtn = document.getElementById('seekBtn');
-    // const resolutionSelect = document.getElementById('resolutionSelect');
-
-    // playPauseBtn.addEventListener('click', function() {
-    // if (video.paused) {
-    //     video.play();
-    // } else {
-    //     video.pause();
-    // }
-    // });
-
-    // seekBtn.addEventListener('click', function() {
-    // var seekTime = prompt('Enter time to seek (in seconds):');
-    // video.currentTime = seekTime;
-    // });
-
-    // resolutionSelect.addEventListener('change', function() {
-    // var selectedRes = this.value;
-    // if (selectedRes === 'auto') {
-    //     player.setAutoSwitchQualityFor('video', true);
-    // } else {
-    //     var quality = selectedRes === '1080p' ? 2 : selectedRes === '720p' ? 1 : 0;
-    //     player.setAutoSwitchQualityFor('video', false);
-    //     player.setQualityFor('video', quality);
-    // }
-    // });
-
-    const container = document.getElementById("container");
-
-    const videos = []
-
-    const count = 1
-    async function getVideos() {
-      const response = await fetch(
-        "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ count }),
+        if (response.ok) {
+          const videoMetadatas = await response.json();
+          console.log(videoMetadatas);
+          videoMetadatas.videos.forEach((video) => {
+            videos.push(video.id);
+            loadVideo(video.id);
+          });
         }
-      );
 
-      if (response.ok) {
-        const videoMetadatas = await response.json();
-        console.log(videoMetadatas)
-        videoMetadatas.videos.forEach(video => {
-          videos.push(video.id)
-          loadVideo(video.id)
-        });
+        // console.log(videos)
       }
 
-      // console.log(videos)
-    }
+      async function loadVideo(id) {
+        var video = document.createElement("video");
+        video.controls = true;
+        video.width = 1280;
 
-    async function loadVideo(id) {
-      var video = document.createElement("video");
-      video.controls = true;
-      video.width = 1280;
+        var videoContainer = document.createElement("div");
 
-      var videoContainer = document.createElement("div");
+        var player = dashjs.MediaPlayer().create();
+        player.initialize(
+          video,
+          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`,
+          true
+        );
 
-      var player = dashjs.MediaPlayer().create();
-      player.initialize(video, `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`, true);
+        const playPauseBtn = document.createElement("div");
+        playPauseBtn.id = "playPauseBtn";
+        playPauseBtn.innerHTML = "Play/Pause";
 
-      const playPauseBtn = document.createElement("div");
-      playPauseBtn.id = "playPauseBtn";
-      playPauseBtn.innerHTML = "Play/Pause"
+        playPauseBtn.addEventListener("click", function () {
+          if (video.paused) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
 
-      playPauseBtn.addEventListener('click', function () {
-        if (video.paused) {
-          video.play();
+        videoContainer.appendChild(video);
+        videoContainer.appendChild(playPauseBtn);
+        // videoContainer.appendChild(seekBtn);
+        // videoContainer.appendChild(resolutionSelect);
+        container.appendChild(videoContainer);
+      }
+
+      window.onload = function () {
+        const id = window.location.pathname.split("/")[2];
+        videos.push(id);
+        loadVideo(id);
+
+        getVideos();
+      };
+
+      window.addEventListener("scroll", () => {
+        // Check if we are near the bottom of the page
+        if (
+          window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 100
+        ) {
+          getVideos();
         } else {
-          video.pause();
+          // Calculate the index of the video based on the scroll position
+          const videoIndex = Math.floor(window.scrollY / 120) % videos.length;
+
+          // Update the URL for the current video
+          window.history.replaceState(
+            null,
+            null,
+            `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videos[videoIndex]}`
+          );
+
+          // Find the next video section element
+          const nextVideoSection = document.getElementById(
+            `video${videoIndex + 1}`
+          ); // Assumes video IDs are in the format 'video1', 'video2', etc.
+
+          // Check if the next video section exists
+          if (nextVideoSection) {
+            // Scroll to the next video section smoothly
+            nextVideoSection.scrollIntoView({ behavior: "smooth" });
+          }
         }
       });
-
-      videoContainer.appendChild(video);
-      videoContainer.appendChild(playPauseBtn);
-      // videoContainer.appendChild(seekBtn);
-      // videoContainer.appendChild(resolutionSelect);
-      container.appendChild(videoContainer);
-    }
-
-    window.onload = function () {
-      const id = window.location.pathname.split("/")[2];
-      videos.push(id)
-      loadVideo(id)
-
-      getVideos();
-    }
-
-    window.addEventListener("scroll", () => {
-      // Check if we are near the bottom of the page
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-        getVideos();
-      } else {
-        // Calculate the index of the video based on the scroll position
-        const videoIndex = Math.floor(window.scrollY / 120) % videos.length;
-
-        // Update the URL for the current video
-        window.history.replaceState(null, null, `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videos[videoIndex]}`);
-
-        // Find the next video section element
-        const nextVideoSection = document.getElementById(`video${videoIndex + 1}`); // Assumes video IDs are in the format 'video1', 'video2', etc.
-
-        // Check if the next video section exists
-        if (nextVideoSection) {
-          // Scroll to the next video section smoothly
-          nextVideoSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    });
-
-    //   window.addEventListener("scroll", (event) => {
-    //     if (event.deltaY > 0) {
-    //       // Scrolling down
-    //       currentVideoIndex = Math.min(
-    //         currentVideoIndex + 1,
-    //         videos.length - 1
-    //       );
-    //     } else {
-    //       // Scrolling up
-    //       currentVideoIndex = Math.max(currentVideoIndex - 1, 0);
-    //     }
-    //     loadVideo(videos[currentVideoIndex].id);
-    //   });
-
-    //   // call getVideoList to save to videos
-    //   let videos = [];
-    //   //getVideoList(10).then((res) => {
-    //   //  console.table(res)
-    //   //  videos = res;
-    //   //});
-
-    //   //   const id = window.location.pathname.split("/")[2];
-
-    //   //   var video = document.getElementById("videoPlayer");
-    //   //   var player = dashjs.MediaPlayer().create();
-
-    //   //   console.log(id)
-    //   //   player.initialize(video, `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`, true);
-
-    //   //   document
-    //   //     .getElementById("playPauseBtn")
-    //   //     .addEventListener("click", function () {
-    //   //       if (video.paused) {
-    //   //         video.play();
-    //   //       } else {
-    //   //         video.pause();
-    //   //       }
-    //   //     }
-    //   //   );
-    //   ////////////////////////////////////////////////////////////////////
-
-    //   // Initialize video with the id with /api/manifest/id call and create video player
-    //   function loadVideo(id) {
-    //     var video = document.createElement("video");
-    //     var videoContainer = document.createElement("div");
-    //     video.controls = true;
-    //     var player = dashjs.MediaPlayer().create();
-    //     // Create play/pause button
-    //     const playPauseBtn = document.createElement("div");
-    //     playPauseBtn.addEventListener("click", function () {
-    //       if (video.paused) {
-    //         video.play();
-    //       } else {
-    //         video.pause();
-    //       }
-    //     });
-    //     videoContainer.appendChild(video);
-    //     videoContainer.appendChild(playPauseBtn);
-    //     container.appendChild(videoContainer);
-    //     // TODO: Need to initialize video
-    //   }
-
-    //   // Gets :count video ids and metadata and compile them to a list. Returns [] if response fails
-
-    //   async function getVideoList(count) {
-    //     const response = await fetch(
-    //       "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
-    //       {
-    //         method: "POST",
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify({ count }),
-    //       }
-    //     );
-
-    //     if (response.ok) {
-    //       const videoMetadatas = await response.json();
-    //       return videoMetadatas.videos;
-    //     }
-    //     return [];
-    //   }
-
-    //   //window.addEventListener("scroll", () => {
-    //   //  if (
-    //   //    window.innerHeight + window.scrollY >=
-    //   //    document.body.offsetHeight - 50
-    //   //  ) {
-    //   //    //loadNextVideo();
-    //   //  }
-    //   //});
-
-
-    //   currentVideoIndex = 0;
-
-    //   window.addEventListener("scroll", (event) => {
-    //     if (event.deltaY > 0) {
-    //       // Scrolling down
-    //       currentVideoIndex = Math.min(
-    //         currentVideoIndex + 1,
-    //         videos.length - 1
-    //       );
-    //     } else {
-    //       // Scrolling up
-    //       currentVideoIndex = Math.max(currentVideoIndex - 1, 0);
-    //     }
-    //     loadVideo(videos[currentVideoIndex].id);
-    //   });
-
-    //   window.onload = function(){
-    //   getVideoList(10).then((videos) => {
-    //     console.table(videos);
-    //     //loadVideo(videos[currentVideoIndex].id);
-    //     videos.forEach((video) => loadVideo(video.id));
-    //   });
-
-    //   }
-
-    //   //async function getVideos() {
-    //   //  try {
-    //   //    const count = 10;
-    //   //    const response = await fetch(
-    //   //      "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
-    //   //      {
-    //   //        method: "POST",
-    //   //        headers: {
-    //   //          "Content-Type": "application/json",
-    //   //        },
-    //   //        body: JSON.stringify({ count }),
-    //   //      }
-    //   //    );
-    //   //
-    //   //    if (response.ok) {
-    //   //      const videoMetadatas = await response.json();
-    //   //      const videos = videoMetadatas.videos;
-    //   //
-    //   //      videos.forEach(async (video) => {
-    //   //        const id = video.id;
-    //   //
-    //   //        const videoContainer = document.createElement("div");
-    //   //
-    //   //        const _video = document.createElement("video");
-    //   //        var player = dashjs.MediaPlayer().create();
-    //   //
-    //   //        console.log(id);
-    //   //        player.initialize(
-    //   //          video,
-    //   //          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`,
-    //   //          true
-    //   //        );
-    //   //        _video.controls = true;
-    //   //        const playPauseBtn = document.createElement("div");
-    //   //        playPauseBtn.addEventListener("click", function () {
-    //   //          if (_video.paused) {
-    //   //            _video.play();
-    //   //          } else {
-    //   //            _video.pause();
-    //   //          }
-    //   //        });
-    //   //        videoContainer.appendChild(_video);
-    //   //        videoContainer.appendChild(playPauseBtn);
-    //   //        container.appendChild(videoContainer);
-    //   //      });
-    //   //    }
-    //   //  } catch (error) {
-    //   //    console.log("Error occured during fetch:", error);
-    //   //  }
-    //   //}
-    //   //
-    //   //window.onload = async function () {
-    //   //  getVideos();
-    //   //};
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>

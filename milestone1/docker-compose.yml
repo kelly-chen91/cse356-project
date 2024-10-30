@@ -13,27 +13,29 @@ services:
       - mongo-data:/data/db
     networks:
       - app-network
-
-  # SMTP server
-  # mail:
-  #   image: bytemark/smtp
-  #   restart: always
-  #   ports:
-  #     - "587:25"
-  #   networks:
-  #     - app-network
   mail:
     image: boky/postfix
     container_name: postfix
     restart: always
-    # ports:
-    #   - "587:587"
     environment:
       - "ALLOWED_SENDER_DOMAINS=doitand711gang.cse356.compas.cs.stonybrook.edu"
       - "MYNETWORKS=130.245.136.0/24"
-    # command:  /bin/sh -c "ip6tables -I OUTPUT -p tcp -m tcp --dport 25 -j DROP && iptables -t nat -I OUTPUT -p tcp --dport 25 -j DNAT --to-destination 130.245.136.123:11587 && /usr/local/bin/docker-entrypoint.sh"
 
     network_mode: "host"
+
+  # NodeJS
+  node:
+    container_name: node
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/app # Mount your local directory to the container
+      - /app/node_modules 
+    networks:
+      - app-network
+    env_file:
+      - .env
 
 volumes:
   mongo-data:
