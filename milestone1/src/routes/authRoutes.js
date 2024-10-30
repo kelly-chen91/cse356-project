@@ -192,9 +192,6 @@ router
     const filePath = req.params.path;
     const mediaPath = path.resolve("../milestone1/media");
     res.sendFile(`${mediaPath}/${filePath}`);
-    // return res
-    //   .status(200)
-    //   .json({ status: "OK", message: "Manifest sent successfully" });
   })
   .get("/media", async (req, res) => {
     console.log("Reached /media");
@@ -204,25 +201,6 @@ router
       .status(200)
       .json({ status: "OK", message: "Manifest sent successfully" });
   })
-  //   .get("/media/:id_chunk_:bandwidth_:segment.m4s", async (req, res) => {
-  //     console.log("Reached media/chunk...m4s");
-  //     // console.log(req.session);
-
-  //     const id = req.params["id"];
-  //     const bandwidth = req.params["bandwidth"];
-  //     const segment_num = req.params["segment"];
-  //     console.log(`Req params: ${id}, ${bandwidth}, ${segment_num}`);
-
-  //     if (!req.session.userId) {
-  //       return res
-  //         .status(200)
-  //         .json({ status: "ERROR", error: true, message: "User not logged in" });
-  //     }
-
-  //     return res
-  //       .status(200)
-  //       .json({ status: "OK", message: "Manifest sent successfully" });
-  //   })
   .post("/api/videos", (req, res) => {
     const { count } = req.body;
     console.log(`Sending ${count} videos to frontend...`);
@@ -243,7 +221,8 @@ router
       const videoList = JSON.parse(content);
       const start_index = Math.floor(Math.random() * videoNames.length);
       for (let i = 0; i < count; i++) {
-        const videoName = videoNames[(start_index + i) % (videoNames.length - 1)];
+        const videoName =
+          videoNames[(start_index + i) % (videoNames.length - 1)];
 
         videoMetadatas.push({
           id: videoName.split(".")[0],
@@ -251,7 +230,7 @@ router
           description: videoList[videoName],
         });
       }
-    //   console.log(videoMetadatas);
+      //   console.log(videoMetadatas);
       return res.status(200).json({
         status: "OK",
         videos: videoMetadatas,
@@ -290,25 +269,13 @@ router
     console.log(`id: ${id}`);
     var id = req.params.id;
     if (id.split(".").length == 1) {
-        id += "_output.mpd"
+      id += "_output.mpd";
     }
     console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("../milestone1/media");
     console.log(`path: ${mediaPath}/${id}`);
-    // res.sendFile(`${mediaPath}/${id}_output.mpd`);
     res.sendFile(`${mediaPath}/${id}`);
   });
-//   .get("/play/:id", (req, res) => {
-//     const id = req.params.id;
-//     console.log("Reached /play/:id => id =", id);
-
-//     const publicPath = path.resolve("../milestone1/src/public");
-
-//     console.log(`path: /play.html/${id}`);
-//     window.location.href = `/play.html/${id}`;
-    
-//     // res.redirect(`/play.html/${id}`);
-//   })
 
 module.exports = router;
