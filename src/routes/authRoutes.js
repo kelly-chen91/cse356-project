@@ -37,7 +37,7 @@ router
 
     // email = encodeURI(email).replace(/%20/g, "+");
     console.log(`EMAIL===== ${email}`);
-    const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu";
+    const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
     // Check for duplicate user
     const userExists = await User.findOne({ $or: [{ username }, { email }] });
@@ -167,18 +167,6 @@ router
       .status(200)
       .json({ status: "OK", isLoggedIn: true, userId: req.session.userId });
   })
-  .get("/media/output.mpd", async (req, res) => {
-    console.log("Reached media/output.mpd");
-    console.log(req.session);
-
-    if (!req.session.userId) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
-
-    return res.sendFile("/root/MPEG-DASH_media_player/media/output.mpd");
-  })
   .get("/media/:path", async (req, res) => {
     console.log("Reached media/:path");
     console.log("path: ", req.params.path);
@@ -193,14 +181,6 @@ router
     const mediaPath = path.resolve("../milestone1/media");
     res.sendFile(`${mediaPath}/${filePath}`);
   })
-  .get("/media", async (req, res) => {
-    console.log("Reached /media");
-    console.log(req.originalUrl);
-
-    return res
-      .status(200)
-      .json({ status: "OK", message: "Manifest sent successfully" });
-  })
   .post("/api/videos", (req, res) => {
     const { count } = req.body;
     console.log(`Sending ${count} videos to frontend...`);
@@ -210,7 +190,7 @@ router
     const videoNames = fs.readdirSync(videosPath);
     videoNames.pop(); // remove m1.json
 
-    fs.readFile(path.join(videosPath, "m1.json"), "utf8", (err, content) => {
+    fs.readFile(path.join(videosPath, process.env.VIDEO_ID_MAP), "utf8", (err, content) => {
       if (err) {
         return res
           .status(200)
