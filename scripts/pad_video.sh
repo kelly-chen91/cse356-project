@@ -1,7 +1,7 @@
 #!/bin/bash
 # Make sure your current directory is milestone1
 # Loop over all mp4 files in the "videos" folder
-for video in videos/*.mp4; do
+for video in ../videos/*.mp4; do
     # Get the filename without the path and extension
     filename=$(basename "$video" .mp4)
 
