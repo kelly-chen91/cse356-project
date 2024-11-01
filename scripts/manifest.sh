@@ -12,8 +12,8 @@ for video in ../padded_videos/*.mp4; do
     # "videos/${filename}.mp4" -y
     
     # Create a directory named after the video file
-    mkdir -p "media"
-    output_dir="media"
+    mkdir -p "../media"
+    output_dir="../media"
     
     # Run the ffmpeg command and place output in the respective folder
     ffmpeg -i "$video" \
