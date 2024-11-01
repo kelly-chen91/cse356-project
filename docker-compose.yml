@@ -13,6 +13,8 @@ services:
       - mongo-data:/data/db
     networks:
       - app-network
+
+  # SMTP Server
   mail:
     image: boky/postfix
     container_name: postfix
@@ -26,13 +28,13 @@ services:
   # NodeJS
   node:
     container_name: node
-    network_mode: "host"
     build: .
-    # ports:
-    #   - "80:80"
+    ports:
+      - "80:80"
     volumes:
-      - ./src:/src # Mount your local directory to the container
-      # - /src/node_modules 
+      - ./src:/app/src # Mount your local directory to the container
+    networks:
+      - app-network
     env_file:
       - .env
 

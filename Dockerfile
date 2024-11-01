@@ -2,23 +2,16 @@
 FROM node:20
 
 # Create a working directory
-WORKDIR /src
+WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY package*.json ./
-
-# RUN npm install -g npm@latest
-
-# RUN npm config set registry https://registry.npmjs.org/
+COPY package.json ./
 
 # Install dependencies
-RUN yarn
+RUN yarn install
 
 # Install nodemon globally
 RUN yarn global add nodemon 
 
-# Copy the rest of the application code
-# COPY ./src ./
-
 # Start the application with nodemon
-CMD ["nodemon", "src/app.js"]
+CMD ["nodemon", "./src/app.js"]
