@@ -26,14 +26,13 @@ services:
   # NodeJS
   node:
     container_name: node
+    network_mode: "host"
     build: .
-    ports:
-      - "80:80"
+    # ports:
+    #   - "80:80"
     volumes:
-      - ./src:/app # Mount your local directory to the container
-      - /app/node_modules 
-    networks:
-      - app-network
+      - ./src:/src # Mount your local directory to the container
+      # - /src/node_modules 
     env_file:
       - .env
 

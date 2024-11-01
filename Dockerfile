@@ -1,22 +1,24 @@
-# Use the official Node.js image as a base
-FROM node:latest
+# Use a stable Node.js image
+FROM node:20
 
 # Create a working directory
 WORKDIR /src
 
-# Copy package.json and package-lock.json (if available)
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install nodemon globally
-RUN npm install -g nodemon 
+# RUN npm install -g npm@latest
+
+# RUN npm config set registry https://registry.npmjs.org/
 
 # Install dependencies
-RUN npm install
+RUN yarn
+
+# Install nodemon globally
+RUN yarn global add nodemon 
 
 # Copy the rest of the application code
-COPY . .
-
-
+# COPY ./src ./
 
 # Start the application with nodemon
-CMD ["nodemon", "src/app.js"] 
+CMD ["nodemon", "src/app.js"]
