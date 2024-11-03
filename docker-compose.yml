@@ -1,5 +1,7 @@
 version: "3.3"
+
 services:
+
   # MongoDB
   mongodb:
     image: mongo:latest
@@ -11,8 +13,6 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
       - mongo-data:/data/db
-    networks:
-      - app-network
 
   # SMTP Server
   mail:
@@ -22,7 +22,6 @@ services:
     environment:
       - "ALLOWED_SENDER_DOMAINS=doitand711gang.cse356.compas.cs.stonybrook.edu"
       - "MYNETWORKS=130.245.136.0/24"
-
     network_mode: "host"
 
   # NodeJS
@@ -33,14 +32,13 @@ services:
       - "80:80"
     volumes:
       - ./src:/app/src # Mount your local directory to the container
-    networks:
-      - app-network
+      - ./media:/app/media
+      - ./videos:/app/videos
     env_file:
       - .env
+    depends_on:
+      - mail
+      - mongodb
 
 volumes:
   mongo-data:
-
-networks:
-  app-network:
-    driver: bridge
