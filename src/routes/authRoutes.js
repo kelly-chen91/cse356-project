@@ -178,14 +178,14 @@ router
     }
 
     const filePath = req.params.path;
-    const mediaPath = path.resolve("../milestone1/media");
+    const mediaPath = path.resolve("/app/media");
     res.sendFile(`${mediaPath}/${filePath}`);
   })
   .post("/api/videos", (req, res) => {
     const { count } = req.body;
     console.log(`Sending ${count} videos to frontend...`);
 
-    const videosPath = path.resolve("../milestone1/videos");
+    const videosPath = path.resolve("/app/videos");
 
     const videoNames = fs.readdirSync(videosPath);
     videoNames.pop(); // remove m1.json
@@ -225,7 +225,7 @@ router
 
     // To be determined, we can change the path to resolve it.
     const thumbnailPath = path.resolve(
-      `../milestone1/media/${id}_thumbnail.jpg`
+      `/app/media/${id}_thumbnail.jpg`
     );
 
     if (!fs.existsSync(thumbnailPath)) {
@@ -253,7 +253,7 @@ router
     }
     console.log(`id: ${id}`);
 
-    const mediaPath = path.resolve("../milestone1/media");
+    const mediaPath = path.resolve("/app/media");
     console.log(`path: ${mediaPath}/${id}`);
     res.sendFile(`${mediaPath}/${id}`);
   });
