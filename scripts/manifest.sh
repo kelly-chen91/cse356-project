@@ -1,7 +1,7 @@
 #!/bin/bash
 # Make sure your current directory is milestone1
 # Loop over all mp4 files in the "videos" folder
-for video in padded_videos/*.mp4; do
+for video in ../padded_videos/*.mp4; do
     # Get the filename without the path and extension
     filename=$(basename "$video" .mp4)
 
@@ -12,8 +12,8 @@ for video in padded_videos/*.mp4; do
     # "videos/${filename}.mp4" -y
     
     # Create a directory named after the video file
-    mkdir -p "media"
-    output_dir="media"
+    mkdir -p "../media"
+    output_dir="../media"
     
     # Run the ffmpeg command and place output in the respective folder
     ffmpeg -i "$video" \

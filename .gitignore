@@ -1,6 +1,6 @@
-milestone1/node_modules
-milestone1/package-lock.json
-milestone1/videos
-milestone1/padded_videos
-milestone1/media
+node_modules/
+videos/
+padded_videos/
+media/
+package-lock.json
 *.vagrant
