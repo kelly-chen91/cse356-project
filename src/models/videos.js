@@ -3,14 +3,14 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var VideoSchema = new Schema({
-  author: { type: String, required: true },
+  author: { type: String, default: "Test" },
   title: { type: String, required: true },
   description: { type: String, required: true },
   likes: { type: Number, default: 0 },
   manifest: {
     type: String,
     default: function () {
-      `${title}/${title}_output.mpd`;
+      `${this.title}/${this.title}_output.mpd`;
     },
   },
 });
