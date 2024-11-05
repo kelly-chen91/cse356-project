@@ -38,3 +38,9 @@ docker logs node -f
     ```
     ./manifest.sh
     ```
+## Gorse (Recommendation System)
+After performing `docker-compose up -d`, you can access to Gorse dashboard via `localhost:8088`. 
+ 
+Please view [this documentation](https://gorse.io/docs/master/quick-start.html) to see the available API endpoints to implement collaborative filtering
+
+Note: From Zhen: remember to check out zhenghaoz (the goat)'s wechat ;) 
