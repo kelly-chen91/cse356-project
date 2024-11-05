@@ -5,7 +5,7 @@ const path = require("path");
 require("dotenv").config();
 
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(process.env.POPULATE_MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
