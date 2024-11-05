@@ -3,4 +3,5 @@ videos/
 padded_videos/
 media/
 package-lock.json
+yarn.lock
 *.vagrant
