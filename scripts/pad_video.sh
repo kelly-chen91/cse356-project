@@ -3,7 +3,7 @@
 # Loop over all mp4 files in the "videos" folder
 
 mkdir -p "../padded_videos"
-for video in ../videos/*.mp4; do
+for video in ../notProcessed/*.mp4; do
     # Get the filename without the path and extension
     filename=$(basename "$video" .mp4)
 

@@ -20,12 +20,24 @@ mongoose
     // console.log(jsonData);
     for (const key in jsonData) {
       console.log(`${key}: ${jsonData[key]}`);
+      const title = key.split(".")[0];
+      const desc = jsonData[key];
       const newVideo = new Video({
-        title: key,
+        videoId: title,
+        title: title,
         description: jsonData[key],
+        manifest: `${title}/${title}_output.mpd`,
       });
       await newVideo.save();
     }
+
+    const newVideo = new Video({
+      author: "Bob the Builder",
+      title: "Test Video",
+      description: "Test Video",
+    });
+
+    await newVideo.save();
 
     console.log("Data inserted successfully!");
     mongoose.disconnect();
