@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>MPEG-DASH Media Player</title>
+  </head>
+
+  <body>
+    <div id="formContainer">
+      <form id="uploadForm">
+        <input
+          type="text"
+          id="title"
+          placeholder="Enter Video Title"
+          required
+        />
+        <input type="text" id="author" placeholder="Enter Author" required />
+        <input
+          type="file"
+          id="mp4file"
+          placeholder="Upload mp4 video file"
+          accept="video/mp4"
+        />
+        <button type="submit">Upload</button>
+      </form>
+      <p id="uploadError" style="display: none">Fail to upload video.</p>
+    </div>
+
+    <script>
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const form = document.getElementById("uploadForm");
+          const formData = FormData(form);
+
+          try {
+            const response = await fetch(
+              "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/upload",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: formData,
+              }
+            );
+
+            const data = await response.json();
+            console.log(data);
+
+            // Handle success or error
+            if (data.status === "ERROR")
+              document.getElementById("loginError").style.display = "block";
+          } catch (error) {
+            console.error("Upload failed:", error);
+          }
+        });
+    </script>
+  </body>
+</html>
