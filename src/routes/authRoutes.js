@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const User = require("../models/users");
+const Video = require("../models/videos");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const uuid = require("uuid");
@@ -37,7 +38,8 @@ router
 
     // email = encodeURI(email).replace(/%20/g, "+");
     console.log(`EMAIL===== ${email}`);
-    const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
+    const ccEmail =
+      "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
     // Check for duplicate user
     const userExists = await User.findOne({ $or: [{ username }, { email }] });
@@ -190,33 +192,37 @@ router
     const videoNames = fs.readdirSync(videosPath);
     videoNames.pop(); // remove m1.json
 
-    fs.readFile(path.join(videosPath, process.env.VIDEO_ID_MAP), "utf8", (err, content) => {
-      if (err) {
-        return res
-          .status(200)
-          .json({ status: "ERROR", error: true, message: err.message });
-      }
+    fs.readFile(
+      path.join(videosPath, process.env.VIDEO_ID_MAP),
+      "utf8",
+      (err, content) => {
+        if (err) {
+          return res
+            .status(200)
+            .json({ status: "ERROR", error: true, message: err.message });
+        }
 
-      const videoMetadatas = [];
-      const videoList = JSON.parse(content);
-      const start_index = Math.floor(Math.random() * videoNames.length);
-      for (let i = 0; i < count; i++) {
-        const videoName =
-          videoNames[(start_index + i) % (videoNames.length - 1)];
+        const videoMetadatas = [];
+        const videoList = JSON.parse(content);
+        const start_index = Math.floor(Math.random() * videoNames.length);
+        for (let i = 0; i < count; i++) {
+          const videoName =
+            videoNames[(start_index + i) % (videoNames.length - 1)];
 
-        videoMetadatas.push({
-          id: videoName.split(".")[0],
-          title: videoName,
-          description: videoList[videoName],
+          videoMetadatas.push({
+            id: videoName.split(".")[0],
+            title: videoName,
+            description: videoList[videoName],
+          });
+        }
+        //   console.log(videoMetadatas);
+        return res.status(200).json({
+          status: "OK",
+          videos: videoMetadatas,
+          message: "Successfully sent videos",
         });
       }
-      //   console.log(videoMetadatas);
-      return res.status(200).json({
-        status: "OK",
-        videos: videoMetadatas,
-        message: "Successfully sent videos",
-      });
-    });
+    );
   })
   .get("/api/thumbnail/:id", (req, res) => {
     console.log("Reached api/thumbnail/:id");
@@ -224,9 +230,7 @@ router
     const id = req.params.id;
 
     // To be determined, we can change the path to resolve it.
-    const thumbnailPath = path.resolve(
-      `/app/media/${id}_thumbnail.jpg`
-    );
+    const thumbnailPath = path.resolve(`/app/media/${id}_thumbnail.jpg`);
 
     if (!fs.existsSync(thumbnailPath)) {
       return res
@@ -256,6 +260,22 @@ router
     const mediaPath = path.resolve("/app/media");
     console.log(`path: ${mediaPath}/${id}`);
     res.sendFile(`${mediaPath}/${id}`);
+  })
+  .post("/api/like", async (req, res) => {
+    // Check if user is currently logged in
+    if (!req.session.userId) {
+      return res.status(200).json({
+        status: "ERROR",
+        error: true,
+        message: "User is not logged in.",
+      });
+    }
+    const { id, value } = req.body;
+    if (value) {
+      await Video.updateOne({ videoId: id }, { $inc: { likes: 1 } });
+      // Update user likes video with Gorse
+
+    }
   });
 
 module.exports = router;

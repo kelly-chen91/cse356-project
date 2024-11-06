@@ -5,3 +5,4 @@ media/
 package-lock.json
 yarn.lock
 *.vagrant
+notProcessed/
