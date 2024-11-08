@@ -92,7 +92,7 @@ index_fit_epoch = 3
 #   auto: If a item have labels, neighbors are found by number of common labels.
 #         If this item have no labels, neighbors are found by number of common users.
 # The default value is "auto".
-neighbor_type = "similar"
+neighbor_type = "auto"
 
 # Enable approximate item neighbor searching using vector index. The default value is true.
 enable_index = true
