@@ -58,6 +58,7 @@ router
         .json({ status: "ERROR", error: true, message: "User already exists" });
     }
 
+    // Create the new user.
     const verificationKey = "supersecretkey";
     const pwhash = await bcrypt.hash(password, 10);
     const newUser = new User({
@@ -68,8 +69,9 @@ router
       verified: false,
     });
     await newUser.save();
-    console.log(`${username} CREATED`);
+    console.log(`${username} CREATED with id ${newUser._id}`);
 
+    // Send out verification email.
     const mailOptions = {
       from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
       to: email,
@@ -91,6 +93,18 @@ router
         });
       }
     });
+
+    // Saving user to gorse.
+    const uid = newUser._id;
+    await gorse.insertUser({
+      userId: uid,
+      labels: [],   // Optional labels for the user
+    }).then(response => {
+      console.log(`User ${uid} added to gorse:`, response);
+    }).catch(error => {
+      console.error(`Error adding user ${uid} to gorse:`, error);
+    });
+
     if (!res.headersSent)
       return res
         .status(200)
