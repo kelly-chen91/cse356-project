@@ -6,21 +6,22 @@ const Video = require("../models/videos");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const uuid = require("uuid");
+import { Gorse } from "gorsejs";
 
 const router = express.Router();
 
-//define routes for user
-//1. Sign in
-//  Checks if the email exists in database
-//  If email exists, compare with the hashed password in the database
-//  If email does not exist or the password does not match to the database, throw error
-//2. Sign out
-//  Destroy the session
-//  Return to welcome page
-//3. Sign up
-//  Checks if the email exists in database
-//  If email exists, return an error saying the email already exists
-//  If email does not exist, proceed to hash the password and add to the database
+// define routes for user
+// 1. Sign in
+//   Checks if the email exists in database
+//   If email exists, compare with the hashed password in the database
+//   If email does not exist or the password does not match to the database, throw error
+// 2. Sign out
+//   Destroy the session
+//   Return to welcome page
+// 3. Sign up
+//   Checks if the email exists in database
+//   If email exists, return an error saying the email already exists
+//   If email does not exist, proceed to hash the password and add to the database
 const transporter = nodemailer.createTransport({
   host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
   port: 587,
@@ -30,6 +31,13 @@ const transporter = nodemailer.createTransport({
   },
   // ignoreTLS: true,
 });
+
+// instantiate the gorse client.
+const gorse = new Gorse({
+  endpoint: "http://127.0.0.1:8088",
+  secret: "zhenghaoz",
+});
+
 router
   .post("/api/adduser", async (req, res) => {
     console.log("/adduser");
@@ -262,19 +270,36 @@ router
     res.sendFile(`${mediaPath}/${id}`);
   })
   .post("/api/like", async (req, res) => {
+
     // Check if user is currently logged in
-    if (!req.session.userId) {
+    const uid = req.session.userId;
+    if (!uid) {
       return res.status(200).json({
         status: "ERROR",
         error: true,
         message: "User is not logged in.",
       });
     }
-    const { id, value } = req.body;
-    if (value) {
-      await Video.updateOne({ videoId: id }, { $inc: { likes: 1 } });
-      // Update user likes video with Gorse
 
+    // Update video information.
+    const { vid, value } = req.body;
+    if (value) {
+      await Video.updateOne({ videoId: vid }, { $inc: { likes: 1 } });
+      // Update user likes video with Gorse
+      client
+        .insertFeedback("view", [
+          {
+            user_id: uid,
+            item_id: vid,
+            timestamp: new Date().toISOString(), // optional
+          },
+        ])
+        .then((response) => {
+          console.log(`${uid} updated feedback on ${vid}`, response);
+        })
+        .catch((error) => {
+          console.error(`${uid} had error update feedback on ${vid}:`, error);
+        });
     }
   });
 
