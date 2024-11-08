@@ -21,6 +21,9 @@ npm install
 # Install ffmpeg
 sudo apt-get install -y ffmpeg
 
+# Install redis client for testing
+sudo apt install -y redis-tools
+
 # Open port 25 access for grading server.
 # Note that iptables commands are not automatically saved on server restart.
 ip6tables -I OUTPUT -p tcp -m tcp --dport 25 -j DROP
