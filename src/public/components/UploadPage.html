@@ -31,8 +31,9 @@
         .getElementById("uploadForm")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
+          console.log("UPLOAD VIDEO ACTIVATED");
           const form = document.getElementById("uploadForm");
-          const formData = FormData(form);
+          const formData = new FormData(form);
 
           try {
             const response = await fetch(

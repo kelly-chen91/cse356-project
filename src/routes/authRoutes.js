@@ -256,6 +256,19 @@ router
     const mediaPath = path.resolve("/app/media");
     console.log(`path: ${mediaPath}/${id}`);
     res.sendFile(`${mediaPath}/${id}`);
-  });
+  })
+  .post("api/upload", (req, res)=>{
+    console.log("Reached api/upload")
+
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
+    
+    console.log(req.params);
+
+  })
+  ;
 
 module.exports = router;
