@@ -1,12 +1,15 @@
-const express = require("express");
-const session = require("express-session"); // for session management
-const MongoStore = require("connect-mongo"); //access to DB for session data
-const connectDB = require("./config/dbConfig");
-const authRoutesRouter = require("./routes/authRoutes");
-const path = require("path");
-const cors = require("cors");
+// Getting all packages.
+import express from "express";
+import session from "express-session"; // for session management
+import MongoStore from "connect-mongo"; //access to DB for session data
+import path from "path";
+import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
-require("dotenv").config();
+// Getting project modules.
+import { connectDB } from "./config/dbConfig.js";
+import authRoutesRouter from "./routes/authRoutes.js";
 
 // Connect to MongoDB
 connectDB();
@@ -39,8 +42,6 @@ app.use((req, res, next) => {
 });
 
 app.use("/", authRoutesRouter);
-
-const User = require("./models/users");
 
 // Placeholder for routes and server logic
 app.get("/", (req, res) => {

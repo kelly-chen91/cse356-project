@@ -1,12 +1,17 @@
+// Overriding require so that we can have import and require together.
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
+import { Gorse } from "gorsejs";
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
-const User = require("../models/users");
-const Video = require("../models/videos");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const uuid = require("uuid");
-import { Gorse } from "gorsejs";
+
+import User from "../models/users.js";
+import Video from "../models/videos.js";
 
 const router = express.Router();
 
@@ -317,4 +322,4 @@ router
     }
   });
 
-module.exports = router;
+export default router;

@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "collaborative-filter": "^1.0.0-beta.3",
@@ -15,5 +14,6 @@
     "nodemon": "^3.1.7",
     "tslib": "^2.8.1",
     "uuid": "^10.0.0"
-  }
+  },
+  "type": "module"
 }
