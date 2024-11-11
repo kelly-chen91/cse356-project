@@ -26,4 +26,5 @@ VideoSchema.virtual("url").get(function () {
 });
 
 const Video = mongoose.model("Video", VideoSchema);
+
 export default Video;
