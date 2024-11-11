@@ -4,7 +4,10 @@ const express = require("express");
 const User = require("../models/users");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
-const uuid = require("uuid");
+// const uuid = require("uuid");
+const { v4: uuidv4 } = require('uuid');
+const multer = require("multer");
+const upload = multer({dest: 'videos/'});
 
 const router = express.Router();
 
@@ -257,7 +260,7 @@ router
     console.log(`path: ${mediaPath}/${id}`);
     res.sendFile(`${mediaPath}/${id}`);
   })
-  .post("api/upload", (req, res)=>{
+  .post("api/upload", upload.single('mp4file'), (req, res)=>{
     console.log("Reached api/upload")
 
     if (!req.session.userId) {
@@ -267,7 +270,17 @@ router
     }
     
     console.log(req.params);
+    const { author, title } = req.body;
+    const mp4file = req.file;
 
+    if (!author || !title || !mp4File) {
+      return res.status(400).json({ status: "ERROR", error: true, message: "Missing required fields" });
+    }
+
+    const videoId = uuidv4();
+    console.log({ videoId, author, title, filePath: mp4File.path });
+
+    res.status(200).json({id: videoId});
   })
   ;
 
