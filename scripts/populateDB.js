@@ -1,7 +1,7 @@
-import { mongoose } from "mongoose";
-import { fs } from "fs";
+import mongoose from "mongoose";
+import fs from "fs";
 import Video from "../src/models/videos.js";
-import { path } from "path";
+import path from "path";
 import dotenv from "dotenv";
 // const mongoose = require("mongoose");
 // const fs = require("fs");
