@@ -1,8 +1,13 @@
-const mongoose = require("mongoose");
-const fs = require("fs");
-const Video = require("../src/models/videos");
-const path = require("path");
-require("dotenv").config();
+import { mongoose } from "mongoose";
+import { fs } from "fs";
+import { Video } from "../src/models/videos";
+import { path } from "path";
+import { dotenv } from "dotenv";
+// const mongoose = require("mongoose");
+// const fs = require("fs");
+// const Video = require("../src/models/videos");
+// const path = require("path");
+dotenv.config();
 
 mongoose
   .connect(process.env.POPULATE_MONGO_URL, {
