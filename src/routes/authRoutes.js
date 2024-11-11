@@ -39,7 +39,7 @@ const transporter = nodemailer.createTransport({
 
 // instantiate the gorse client.
 const gorse = new Gorse({
-  endpoint: "http://127.0.0.1:8088",
+  endpoint: "http://gorse:8088",
   secret: "zhenghaoz",
 });
 
@@ -215,9 +215,14 @@ router
     console.log(`Sending ${count} videos to frontend...`);
 
     const videosPath = path.resolve("/app/videos");
+    const userId = req.session.userId;
 
-    const videoNames = fs.readdirSync(videosPath);
-    videoNames.pop(); // remove m1.json
+    // This is the part where we start using Gorse to get recommendations.
+    let videoNames = gorse.getRecommend({ userId: userId, cursorOptions: { n: count } });
+    if (!videoNames || videoNames.length < 1) {
+      videoNames = fs.readdirSync(videosPath);
+      videoNames.pop(); // remove m1.json
+    }
 
     fs.readFile(
       path.join(videosPath, process.env.VIDEO_ID_MAP),

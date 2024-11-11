@@ -16,7 +16,7 @@ connectDB();
 
 // Some pages.
 const loginPage = path.resolve("/app/src/public/components/LoginPage.html");
-const indexPage = path.resolve("/app/src/public/components/index.html");
+const indexPage = path.resolve("/app/src/public/index.html");
 const signUpPage = path.resolve("/app/src/public/components/SignupPage.html");
 const playPage = path.resolve("/app/src/public/play.html");
 
