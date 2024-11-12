@@ -50,9 +50,10 @@ router
         let { username, password, email } = req.body;
         console.log(`BEFORE EMAIL===== ${email}`);
 
-        // email = encodeURI(email).replace(/%20/g, "+");
-        console.log(`EMAIL===== ${email}`);
-        const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
+    // email = encodeURI(email).replace(/%20/g, "+");
+    console.log(`EMAIL===== ${email}`);
+    const ccEmail =
+      "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
         // Check for duplicate user
         const userExists = await User.findOne({ $or: [{ username }, { email }] });
@@ -163,85 +164,48 @@ router
         //     // Generate Session here
         //     req.session.userId = user._id;
 
-        //     res.redirect("/");
-        // }
-        return res
-            .status(200)
-            .json({ status: "OK", message: "User verified successfully" });
-    })
-    .post("/api/check-auth", (req, res) => {
-        if (!req.session.userId) {
-            return res.status(200).json({
-                status: "ERROR",
-                error: true,
-                isLoggedIn: false,
-                userId: "",
-            });
-        }
-        return res
-            .status(200)
-            .json({ status: "OK", isLoggedIn: true, userId: req.session.userId });
-    })
-    .get("/media/:path", async (req, res) => {
-        console.log("Reached media/:path");
-        console.log("path: ", req.params.path);
+    const videoNames = fs.readdirSync(videosPath);
+    videoNames.pop(); // remove m1.json
 
-        if (!req.session.userId) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not logged in" });
+    fs.readFile(
+      path.join(videosPath, process.env.VIDEO_ID_MAP),
+      "utf8",
+      (err, content) => {
+        if (err) {
+          return res
+            .status(200)
+            .json({ status: "ERROR", error: true, message: err.message });
         }
 
-        const filePath = req.params.path;
-        const mediaPath = path.resolve("/app/media");
-        res.sendFile(`${mediaPath}/${filePath}`);
-    })
-    .post("/api/videos", (req, res) => {
-        const { count } = req.body;
-        console.log(`Sending ${count} videos to frontend...`);
+        const videoMetadatas = [];
+        const videoList = JSON.parse(content);
+        const start_index = Math.floor(Math.random() * videoNames.length);
+        for (let i = 0; i < count; i++) {
+          const videoName =
+            videoNames[(start_index + i) % (videoNames.length - 1)];
 
-        const videosPath = path.resolve("/app/videos");
-
-        const videoNames = fs.readdirSync(videosPath);
-        videoNames.pop(); // remove m1.json
-
-        fs.readFile(path.join(videosPath, process.env.VIDEO_ID_MAP), "utf8", (err, content) => {
-            if (err) {
-                return res
-                    .status(200)
-                    .json({ status: "ERROR", error: true, message: err.message });
-            }
-
-            const videoMetadatas = [];
-            const videoList = JSON.parse(content);
-            const start_index = Math.floor(Math.random() * videoNames.length);
-            for (let i = 0; i < count; i++) {
-                const videoName =
-                    videoNames[(start_index + i) % (videoNames.length - 1)];
-
-                videoMetadatas.push({
-                    id: videoName.split(".")[0],
-                    title: videoName,
-                    description: videoList[videoName],
-                });
-            }
-            //   console.log(videoMetadatas);
-            return res.status(200).json({
-                status: "OK",
-                videos: videoMetadatas,
-                message: "Successfully sent videos",
-            });
+          videoMetadatas.push({
+            id: videoName.split(".")[0],
+            title: videoName,
+            description: videoList[videoName],
+          });
+        }
+        //   console.log(videoMetadatas);
+        return res.status(200).json({
+          status: "OK",
+          videos: videoMetadatas,
+          message: "Successfully sent videos",
         });
-    })
-    .get("/api/thumbnail/:id", (req, res) => {
-        console.log("Reached api/thumbnail/:id");
+      }
+    );
+  })
+  .get("/api/thumbnail/:id", (req, res) => {
+    console.log("Reached api/thumbnail/:id");
 
         const id = req.params.id;
 
-        // To be determined, we can change the path to resolve it.
-        const thumbnailPath = path.resolve(
-            `/app/media/${id}_thumbnail.jpg`
-        );
+    // To be determined, we can change the path to resolve it.
+    const thumbnailPath = path.resolve(`/app/media/${id}_thumbnail.jpg`);
 
         if (!fs.existsSync(thumbnailPath)) {
             return res
@@ -268,66 +232,25 @@ router
         }
         console.log(`id: ${id}`);
 
-        const mediaPath = path.resolve("/app/media");
-        console.log(`path: ${mediaPath}/${id}`);
-        res.sendFile(`${mediaPath}/${id}`);
-    })
-    .post("/api/upload", upload.single('mp4file'), async (req, res) => {
-        console.log("Reached api/upload");
+    const mediaPath = path.resolve("/app/media");
+    console.log(`path: ${mediaPath}/${id}`);
+    res.sendFile(`${mediaPath}/${id}`);
+  })
+  .post("/api/like", async (req, res) => {
+    // Check if user is currently logged in
+    if (!req.session.userId) {
+      return res.status(200).json({
+        status: "ERROR",
+        error: true,
+        message: "User is not logged in.",
+      });
+    }
+    const { id, value } = req.body;
+    if (value) {
+      await Video.updateOne({ videoId: id }, { $inc: { likes: 1 } });
+      // Update user likes video with Gorse
 
-        // if (!req.session.userId) {
-        //     return res
-        //         .status(200)
-        //         .json({ status: "ERROR", error: true, message: "User not logged in" });
-        // }
-
-        const { author, title } = req.body;
-        const mp4file = req.file;
-        console.log("body:", req.body);
-        console.log("mp4file:", mp4file)
-
-        if (!author || !title || !mp4file) {
-            return res.status(400).json({ status: "ERROR", error: true, message: "Missing required fields" });
-        }
-
-        const videoId = uuidv4();
-
-        const newVideo = new Video({
-            author: author,
-            title: title.replace(" ", ""),
-            description: "random",
-            status: "processing"
-        })
-        await newVideo.save();
-        console.log(newVideo);
-        console.log({ videoId, author, title, filePath: mp4file.path });
-
-        // const user = await User.findById(req.session.userId).exec();
-        // if (user) {
-        //     user.videos.push(newVideo)
-        // }
-
-        // Pad video
-        // const scriptPath = path.resolve('src/routes/scripts-single/pad_video_single.sh');
-        // const command = `${scriptPath} ${mp4file.path}`;
-
-        // // Execute the shell script
-        // exec(command, (error, stdout, stderr) => {
-        //     if (error) {
-        //         console.error(`Error: ${error.message}`);
-        //         return res.status(500).json({ error: 'Error executing shell script', details: error.message });
-        //     }
-        //     if (stderr) {
-        //         console.error(`stderr: ${stderr}`);
-        //         return res.status(500).json({ error: 'Shell script error', details: stderr });
-        //     }
-
-        //     // Respond with the output of the shell script
-        //     res.json({ message: 'Video padded successfully', output: stdout });
-        // });
-
-        res.status(200).json({ id: videoId });
-    })
-    ;
+    }
+  });
 
 module.exports = router;

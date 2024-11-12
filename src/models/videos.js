@@ -3,14 +3,20 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var VideoSchema = new Schema({
-  author: { type: String, default: "Test" },
+  videoId: {
+    type: String,
+    default: function () {
+      return `${this._id}`;
+    },
+  },
+  author: { type: String, default: "Anonymous" },
   title: { type: String, required: true },
   description: { type: String, required: true },
   likes: { type: Number, default: 0 },
   manifest: {
     type: String,
     default: function () {
-      `${this.title}/${this.title}_output.mpd`;
+      return `${this._id}/${this._id}_output.mpd`;
     },
   },
   status: {type: String, enum: ["processing", "complete"], required: true}
