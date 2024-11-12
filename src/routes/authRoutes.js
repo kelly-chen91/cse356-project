@@ -237,57 +237,127 @@ router
         const userId = req.session.userId;
         console.log(`Sending ${count} videos to ${userId}...`);
 
-        // This is the part where we start using Gorse to get recommendations.
-        let videoNames = gorse.getRecommend({
-            userId: userId,
-            cursorOptions: { n: count },
-        });
-        const user = await User.findById(userId);
-        // The result
         const metadata = [];
-        console.log(`Received ${videoNames} from gorse.`);
-        for (const vid in videoNames) {
-            // Get the feedback for this user.
-            let userFeedback = null;
-            gorse
-                .getFeedback({ userId: userId, itemId: vid })
-                .then((res) => {
-                    userFeedback = res;
-                })
-                .catch((err) => {
-                    console.log(
-                        `Error while getting feedback for user ${userId}: ${err}`
-                    );
-                });
-
-            // Gather data for this video.
-            Video.findById(vid)
-                .then((res) => {
-                    metadata.push({
-                        id: res._id,
-                        description: res.description,
-                        title: res.title,
-                        watched: user.watched.contains(vid) ? true : false,
-                        liked:
-                            userFeedback.FeedbackType === "like"
-                                ? true
-                                : userFeedback.FeedbackType === "read" &&
-                                    !(userFeedback.FeedbackType === "star")
-                                    ? false
-                                    : null,
-                        likevalues: res.likes,
-                    });
-                })
-                .catch((err) => {
-                    console.log(`Error while retrieving video meta data from db: ${err}`);
-                });
+        
+        // Find the user.
+        const user = await User.findById(userId);
+        if (!user) {
+          console.log(`User does not exist.`);
+          return res.json({status: 404});
         }
 
-        return res.status(200).json({
-            status: 200,
-            videos: metadata,
-            message: "Successfully sent videos",
+        const videoIds = await Video.find({}, '_id'); // Assume each entry in `db` has a unique video ID
+        const recommendedVideos = new Set();
+        const userIds = await User.find({}, '_id');
+
+        if (userIds.length > 1) {
+          // Step 1: Prepare the list of all video IDs and the user's preference vector
+
+          const userVector = videoIds.map(
+            async (videoId) => {
+              // db[username].ups.has(videoId) ? 1 : // Liked
+              // db[username].downs.has(videoId) ? -1 : // Disliked
+              const vid = await Video.findById(videoId);
+              const liked = vid.likedBy;
+              const disliked = vid.dislikedBy;
+            
+              return liked.contains(userId)
+                ? 1
+                : disliked.contains(userId)
+                ? -1
+                : 0 // No interaction
+            }
+          );
+
+          // Step 2: Calculate similarity with other users using the `compute-cosine-similarity` library
+          const similarityScores = [];
+
+          userIds.forEach((otherUser) => {
+            if (otherUser !== userId) {
+              const otherUserVector = videoIds.map(async (videoId) => {
+                // db[otherUser].ups.has(videoId) ? 1 :
+                // db[otherUser].downs.has(videoId) ? -1 :
+                const vid = await Video.findById(videoId);
+                const liked = vid.likedBy;
+                const disliked = vid.dislikedBy;
+
+                return liked.contains(otherUser)
+                  ? 1
+                  : disliked.contains(otherUser)
+                  ? -1
+                  : 0
+              });
+
+              const similarity = cosineSimilarity(userVector, otherUserVector);
+              similarityScores.push({ user: otherUser, similarity: similarity });
+            }
+          });
+
+          // Step 3: Sort users by similarity in descending order
+          similarityScores.sort((a, b) => b.similarity - a.similarity);
+
+          // Step 4: Get recommended videos based on similar users
+          for (const { user: similarUser } of similarityScores) {
+            const otherLikes = db.users[similarUser].liked;
+            for (const videoId of otherLikes) {
+              const u = await User.findById(user);
+              if (!u.watched.contains(videoId)) {
+                // Only add if not already watched
+                recommendedVideos.add(videoId);
+                if (recommendedVideos.size >= count) break;
+              }
+            }
+            if (recommendedVideos.size >= count) break;
+          }
+        }
+
+        // Step 5: Fallback to random unwatched videos if needed
+        const unwatchedVideos = videoIds.filter(
+          (videoId) => !user.watched.contains(videoId));
+        while (recommendedVideos.size < count && unwatchedVideos.length > 0) {
+          const randomVideo = unwatchedVideos.splice(
+            Math.floor(Math.random() * unwatchedVideos.length),
+            1
+          )[0];
+          recommendedVideos.add(randomVideo);
+        }
+
+        // Step 6: Fallback to random watched videos if still needed
+        const watchedVideos = videoIds.filter((videoId) =>
+          user.watched.contains(videoId)
+        );
+        while (recommendedVideos.size < count && watchedVideos.length > 0) {
+          const randomVideo = watchedVideos.splice(
+            Math.floor(Math.random() * watchedVideos.length),
+            1
+          )[0];
+          recommendedVideos.add(randomVideo);
+        }
+
+        // Step 7: Format the response
+        const videoList = Array.from(recommendedVideos).map(async (id) => {
+          const video = await Video.findById(id);
+          return {
+            id,
+            description: video.description || "",
+            title: video.title || "",
+            watched: user.watched.contains(id),
+            liked: user.liked.contains(id)
+              ? true
+              : user.disliked.contains(id)
+              ? false
+              : null,
+            likevalues: video.likes,
+          };
         });
+
+        return res.json({ status: "OK", videos: videoList.slice(0, count) });
+
+        // return res.status(200).json({
+        //     status: 200,
+        //     videos: metadata,
+        //     message: "Successfully sent videos",
+        // });
     })
     .get("/api/thumbnail/:id", (req, res) => {
         console.log("Reached api/thumbnail/:id");
