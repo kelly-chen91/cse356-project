@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 var Schema = mongoose.Schema;
 
@@ -26,4 +26,6 @@ VideoSchema.virtual("url").get(function () {
   return "play/" + this._id;
 });
 
-module.exports = mongoose.model("Video", VideoSchema);
+const Video = mongoose.model("Video", VideoSchema);
+
+export default Video;

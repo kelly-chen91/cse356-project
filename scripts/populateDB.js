@@ -1,11 +1,23 @@
-const mongoose = require("mongoose");
-const fs = require("fs");
-const Video = require("../src/models/videos");
-const path = require("path");
-require("dotenv").config();
+import mongoose from "mongoose";
+import fs from "fs";
+import Video from "../src/models/videos.js";
+import path from "path";
+import dotenv from "dotenv";
+
+import GorsePkg from "gorsejs"
+const { Gorse, Item } = GorsePkg;
+
+const gorse = new Gorse({ endpoint: "http://127.0.0.1:8088", secret: "zhenghaoz" });
+
+dotenv.config();
+
+const jsonPath = path.resolve("../m2.json");
+const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+
+const items = [];
 
 mongoose
-  .connect(process.env.POPULATE_MONGO_URL, {
+  .connect("mongodb://root:example@localhost:27017/warmup?authsource=admin", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -13,9 +25,6 @@ mongoose
     console.log("Connected to MongoDB");
 
     await Video.deleteMany({});
-    const jsonPath = path.resolve(process.env.VIDEO_ID_MAP);
-
-    const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 
     // console.log(jsonData);
     for (const key in jsonData) {
@@ -29,15 +38,14 @@ mongoose
         manifest: `${title}/${title}_output.mpd`,
       });
       await newVideo.save();
+
+      // Populate gorse items.
+      console.log(`Marking item ${newVideo._id} into gorse...`)
+      items.push({
+        ItemId: newVideo._id,
+        IsHidden: false
+      });
     }
-
-    const newVideo = new Video({
-      author: "Bob the Builder",
-      title: "Test Video",
-      description: "Test Video",
-    });
-
-    await newVideo.save();
 
     console.log("Data inserted successfully!");
     mongoose.disconnect();
@@ -45,3 +53,7 @@ mongoose
   .catch((error) => {
     console.error("Error connecting to MongoDB:", error);
   });
+
+// Inserting items to gorse.
+console.log("Inserting items into gorse...");
+gorse.upsertItems(items);

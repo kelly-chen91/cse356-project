@@ -31,7 +31,7 @@ services:
       - "80:80"
     volumes:
       - ./src:/app/src # Mount your local directory to the container
-      - ./media:/app/media
+      - /mnt/media:/app/media # Mounting the mounted volume to the container.
       - ./videos:/app/videos
     env_file:
       - .env
