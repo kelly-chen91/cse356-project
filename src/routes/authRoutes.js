@@ -30,6 +30,7 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
+// const upload = multer({ dest: 'videos/' });
 
 const router = express.Router();
 
@@ -364,47 +365,53 @@ router
                 console.error(`${uid} had error update feedback on ${vid}:`, error);
             });
     })
-    .post("/api/upload", upload.single('mp4file'), async (req, res) => {
+    .post("/api/upload", upload.single('mp4File'), async (req, res) => {
         console.log("Reached api/upload");
 
-        // if (!req.session.userId) {
-        //     return res
-        //         .status(200)
-        //         .json({ status: "ERROR", error: true, message: "User not logged in" });
-        // }
+        if (!req.session.userId) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User not logged in" });
+        }
 
         const { author, title } = req.body;
-        const mp4file = req.file;
+        const mp4File = req.file;
         console.log("body:", req.body);
-        console.log("mp4file:", mp4file)
+        console.log("mp4File:", mp4File)
 
-        if (!author || !title || !mp4file) {
+        if (!author || !title || !mp4File) {
             return res.status(400).json({ status: "ERROR", error: true, message: "Missing required fields" });
         }
 
         const videoId = uuidv4();
 
+        res.status(200).json({ status: "OK", id: videoId });
+
         const newVideo = new Video({
+            uuid: videoId,
             author: author,
-            title: title.replace(" ", ""),
+            title: title,
             description: "random",
             status: "processing"
         })
-        await newVideo.save();
-        console.log(newVideo);
-        console.log({ videoId, author, title, filePath: mp4file.path });
 
-        const inputFilePath = mp4file.path;
-        const paddedFilePath = inputFilePath.replace("videos", "padded_videos");
-        const thumbnailFilePath = inputFilePath.replace("videos", "media").replace("mp4", "thumbnail.jpg");
+        await newVideo.save();
+
+        const user = await User.findById(req.session.userId).exec();
+        if (user) {
+            user.videos.push(videoId);
+            await user.save();
+        }
+
+        const videoName = mp4File.originalname;
 
         // FFmpeg command to pad the video to 1280x720 with black bars
-        const padCommand = `ffmpeg -i "${inputFilePath}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "${paddedFilePath}" -y`;
+        const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoName}" -y`;
 
-        const thumbnailCommand = `ffmpeg -i "${inputFilePath}" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "${title}.jpg" -y`;
+        const thumbnailCommand = `ffmpeg -i "padded_videos/${videoName}" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "${videoName}_thumbnail.jpg" -y`;
 
         const manifestCommand = `
-  ffmpeg -i "${paddedFilePath}" \
+  ffmpeg -i "padded_videos/${videoName}" \
     -map 0:v -b:v:0 254k -s:v:0 320x180 \
     -map 0:v -b:v:1 507k -s:v:1 320x180 \
     -map 0:v -b:v:2 759k -s:v:2 480x270 \
@@ -414,10 +421,10 @@ router
     -map 0:v -b:v:6 3134k -s:v:6 1024x576 \
     -map 0:v -b:v:7 4952k -s:v:7 1280x720 \
     -f dash -seg_duration 10 -use_template 1 -use_timeline 1 \
-    -init_seg_name "${title}_chunk_\$RepresentationID\$_init.m4s" \
-    -media_seg_name "${title}_chunk_\$RepresentationID\$_\$Bandwidth\$_\$Number\$.m4s" \
+    -init_seg_name "${videoName}_chunk_init_$RepresentationID$.m4s" \
+    -media_seg_name "${videoName}_chunk_$RepresentationID$_$Number$.m4s" \
     -adaptation_sets "id=0,streams=v" \
-    "media/${title}_output.mpd"
+    "media/${videoName}_output.mpd"
 `;
 
 
@@ -448,9 +455,33 @@ router
         console.log("Creating chunk and mpd...");
         await execPromise(manifestCommand);
 
+        newVideo.status = "complete";
+        await newVideo.save();
+
         console.log("All commands executed successfully!");
 
-        res.status(200).json({ id: videoId });
+    })
+    .get("/api/processing-status", async (req, res) => {
+        console.log("Reached api/processing-status");
+
+        if (!req.session.userId) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User not logged in" });
+        }
+
+        const user = await User.findById(req.session.userId).exec();
+        console.log("USER =", user);
+        if (user) {
+            const videoStatusPromises = user.videos.map(async vId => {
+                const video = await Video.findOne({ uuid: vId }).exec();
+                console.log(video);
+                return { id: vId, title: video.title, status: video.status };
+            });
+            const videoStatus = await Promise.all(videoStatusPromises);
+            console.log("Video statuses:", videoStatus);
+            return res.status(200).json({ status: "OK", videos: videoStatus });
+        }
     });
 
 export default router;
