@@ -2,12 +2,24 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const User = require("../models/users");
+const Video = require("../models/videos");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 // const uuid = require("uuid");
 const { v4: uuidv4 } = require('uuid');
 const multer = require("multer");
-const upload = multer({dest: 'videos/'});
+const { exec } = require('child_process');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'videos/'); // Specify the destination folder
+    },
+    filename: function (req, file, cb) {
+        // Use the original filename and add a unique identifier to avoid overwrites
+        cb(null, `${file.originalname}`);
+    }
+});
+const upload = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -24,264 +36,298 @@ const router = express.Router();
 //  If email exists, return an error saying the email already exists
 //  If email does not exist, proceed to hash the password and add to the database
 const transporter = nodemailer.createTransport({
-  host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
-  port: 587,
-  secure: false,
-  tls: {
-    rejectUnauthorized: false,
-  },
-  // ignoreTLS: true,
+    host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
+    port: 587,
+    secure: false,
+    tls: {
+        rejectUnauthorized: false,
+    },
+    // ignoreTLS: true,
 });
 router
-  .post("/api/adduser", async (req, res) => {
-    console.log("/adduser");
-    let { username, password, email } = req.body;
-    console.log(`BEFORE EMAIL===== ${email}`);
+    .post("/api/adduser", async (req, res) => {
+        console.log("/adduser");
+        let { username, password, email } = req.body;
+        console.log(`BEFORE EMAIL===== ${email}`);
 
-    // email = encodeURI(email).replace(/%20/g, "+");
-    console.log(`EMAIL===== ${email}`);
-    const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
+        // email = encodeURI(email).replace(/%20/g, "+");
+        console.log(`EMAIL===== ${email}`);
+        const ccEmail = "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
-    // Check for duplicate user
-    const userExists = await User.findOne({ $or: [{ username }, { email }] });
-    if (userExists) {
-      console.log(`${username} ALREADY EXISTS`);
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User already exists" });
-    }
+        // Check for duplicate user
+        const userExists = await User.findOne({ $or: [{ username }, { email }] });
+        if (userExists) {
+            console.log(`${username} ALREADY EXISTS`);
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User already exists" });
+        }
 
-    const verificationKey = "supersecretkey";
-    const pwhash = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      username: username,
-      email: email,
-      pwhash: pwhash,
-      verificationKey: verificationKey,
-      verified: false,
-    });
-    await newUser.save();
-    console.log(`${username} CREATED`);
-
-    const mailOptions = {
-      from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
-      to: email,
-      cc: ccEmail,
-      subject: "Please verify your account",
-      text: `http://${req.headers.host}/api/verify?email=${email}&key=${verificationKey}`,
-      // text: `https://www.google.com`,
-    };
-
-    await transporter.sendMail(mailOptions, (error, info) => {
-      console.log("USER=====", newUser);
-      if (error) {
-        console.log("VERIFICATION ERROR=====", error);
-
-        return res.status(200).json({
-          status: "ERROR",
-          error: true,
-          message: "Failed to send email",
+        const verificationKey = "supersecretkey";
+        const pwhash = await bcrypt.hash(password, 10);
+        const newUser = new User({
+            username: username,
+            email: email,
+            pwhash: pwhash,
+            verificationKey: verificationKey,
+            verified: false,
         });
-      }
-    });
-    if (!res.headersSent)
-      return res
-        .status(200)
-        .json({ status: "OK", message: `${username} successfully added.` });
-  })
-  .post("/api/login", async (req, res) => {
-    console.log("/api/login");
-    const { username, password } = req.body;
+        await newUser.save();
+        console.log(`${username} CREATED`);
 
-    const user = await User.findOne({ username });
-    console.log(user);
-    console.log(req.cookies);
-    if (!user || !(await bcrypt.compare(password, user.pwhash))) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "Invalid credentials" });
-    }
+        const mailOptions = {
+            from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
+            to: email,
+            cc: ccEmail,
+            subject: "Please verify your account",
+            text: `http://${req.headers.host}/api/verify?email=${email}&key=${verificationKey}`,
+            // text: `https://www.google.com`,
+        };
 
-    if (!user.verified) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not verified" });
-    }
+        await transporter.sendMail(mailOptions, (error, info) => {
+            console.log("USER=====", newUser);
+            if (error) {
+                console.log("VERIFICATION ERROR=====", error);
 
-    console.log(req.session);
-
-    req.session.userId = user._id;
-    res.status(200).json({ status: "OK", message: "Login successful" });
-  })
-  .post("/api/logout", (req, res) => {
-    console.log("Logging out...");
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(200).json({
-          status: "ERROR",
-          error: true,
-          errorMessage: "Logout failed",
+                return res.status(200).json({
+                    status: "ERROR",
+                    error: true,
+                    message: "Failed to send email",
+                });
+            }
         });
-      }
-      return res.json({ status: "OK" });
-    });
-  })
-  .get("/api/verify", async (req, res) => {
-    let { email, key } = req.query;
-    console.log("/verify");
-    console.table(req.query);
-    email = encodeURI(email).replace(/%20/g, "+");
-    const data = await User.findOne({ email });
+        if (!res.headersSent)
+            return res
+                .status(200)
+                .json({ status: "OK", message: `${username} successfully added.` });
+    })
+    .post("/api/login", async (req, res) => {
+        console.log("/api/login");
+        const { username, password } = req.body;
 
-    if (!data)
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not found" });
-    console.log("user found");
-    // If user's verification key is correct, we log the user in and redirect them to home page
-    // If it is not correct, we redirect to login page
-    // if (key !== data.verificationKey) {
-    //     res.sendFile(
-    //         __dirname +
-    //         "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
-    //     );
-    // } else {
-    const user = await User.updateOne({ _id: data._id }, { verified: true });
-    console.log(user);
-    //     // Generate Session here
-    //     req.session.userId = user._id;
+        const user = await User.findOne({ username });
+        console.log(user);
+        console.log(req.cookies);
+        if (!user || !(await bcrypt.compare(password, user.pwhash))) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "Invalid credentials" });
+        }
 
-    //     res.redirect("/");
-    // }
-    return res
-      .status(200)
-      .json({ status: "OK", message: "User verified successfully" });
-  })
-  .post("/api/check-auth", (req, res) => {
-    if (!req.session.userId) {
-      return res.status(200).json({
-        status: "ERROR",
-        error: true,
-        isLoggedIn: false,
-        userId: "",
-      });
-    }
-    return res
-      .status(200)
-      .json({ status: "OK", isLoggedIn: true, userId: req.session.userId });
-  })
-  .get("/media/:path", async (req, res) => {
-    console.log("Reached media/:path");
-    console.log("path: ", req.params.path);
+        if (!user.verified) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User not verified" });
+        }
 
-    if (!req.session.userId) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
+        console.log(req.session);
 
-    const filePath = req.params.path;
-    const mediaPath = path.resolve("/app/media");
-    res.sendFile(`${mediaPath}/${filePath}`);
-  })
-  .post("/api/videos", (req, res) => {
-    const { count } = req.body;
-    console.log(`Sending ${count} videos to frontend...`);
+        req.session.userId = user._id;
+        res.status(200).json({ status: "OK", message: "Login successful" });
+    })
+    .post("/api/logout", (req, res) => {
+        console.log("Logging out...");
+        req.session.destroy((err) => {
+            if (err) {
+                return res.status(200).json({
+                    status: "ERROR",
+                    error: true,
+                    errorMessage: "Logout failed",
+                });
+            }
+            return res.json({ status: "OK" });
+        });
+    })
+    .get("/api/verify", async (req, res) => {
+        let { email, key } = req.query;
+        console.log("/verify");
+        console.table(req.query);
+        email = encodeURI(email).replace(/%20/g, "+");
+        const data = await User.findOne({ email });
 
-    const videosPath = path.resolve("/app/videos");
+        if (!data)
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User not found" });
+        console.log("user found");
+        // If user's verification key is correct, we log the user in and redirect them to home page
+        // If it is not correct, we redirect to login page
+        // if (key !== data.verificationKey) {
+        //     res.sendFile(
+        //         __dirname +
+        //         "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
+        //     );
+        // } else {
+        const user = await User.updateOne({ _id: data._id }, { verified: true });
+        console.log(user);
+        //     // Generate Session here
+        //     req.session.userId = user._id;
 
-    const videoNames = fs.readdirSync(videosPath);
-    videoNames.pop(); // remove m1.json
-
-    fs.readFile(path.join(videosPath, process.env.VIDEO_ID_MAP), "utf8", (err, content) => {
-      if (err) {
+        //     res.redirect("/");
+        // }
         return res
-          .status(200)
-          .json({ status: "ERROR", error: true, message: err.message });
-      }
+            .status(200)
+            .json({ status: "OK", message: "User verified successfully" });
+    })
+    .post("/api/check-auth", (req, res) => {
+        if (!req.session.userId) {
+            return res.status(200).json({
+                status: "ERROR",
+                error: true,
+                isLoggedIn: false,
+                userId: "",
+            });
+        }
+        return res
+            .status(200)
+            .json({ status: "OK", isLoggedIn: true, userId: req.session.userId });
+    })
+    .get("/media/:path", async (req, res) => {
+        console.log("Reached media/:path");
+        console.log("path: ", req.params.path);
 
-      const videoMetadatas = [];
-      const videoList = JSON.parse(content);
-      const start_index = Math.floor(Math.random() * videoNames.length);
-      for (let i = 0; i < count; i++) {
-        const videoName =
-          videoNames[(start_index + i) % (videoNames.length - 1)];
+        if (!req.session.userId) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User not logged in" });
+        }
 
-        videoMetadatas.push({
-          id: videoName.split(".")[0],
-          title: videoName,
-          description: videoList[videoName],
+        const filePath = req.params.path;
+        const mediaPath = path.resolve("/app/media");
+        res.sendFile(`${mediaPath}/${filePath}`);
+    })
+    .post("/api/videos", (req, res) => {
+        const { count } = req.body;
+        console.log(`Sending ${count} videos to frontend...`);
+
+        const videosPath = path.resolve("/app/videos");
+
+        const videoNames = fs.readdirSync(videosPath);
+        videoNames.pop(); // remove m1.json
+
+        fs.readFile(path.join(videosPath, process.env.VIDEO_ID_MAP), "utf8", (err, content) => {
+            if (err) {
+                return res
+                    .status(200)
+                    .json({ status: "ERROR", error: true, message: err.message });
+            }
+
+            const videoMetadatas = [];
+            const videoList = JSON.parse(content);
+            const start_index = Math.floor(Math.random() * videoNames.length);
+            for (let i = 0; i < count; i++) {
+                const videoName =
+                    videoNames[(start_index + i) % (videoNames.length - 1)];
+
+                videoMetadatas.push({
+                    id: videoName.split(".")[0],
+                    title: videoName,
+                    description: videoList[videoName],
+                });
+            }
+            //   console.log(videoMetadatas);
+            return res.status(200).json({
+                status: "OK",
+                videos: videoMetadatas,
+                message: "Successfully sent videos",
+            });
         });
-      }
-      //   console.log(videoMetadatas);
-      return res.status(200).json({
-        status: "OK",
-        videos: videoMetadatas,
-        message: "Successfully sent videos",
-      });
-    });
-  })
-  .get("/api/thumbnail/:id", (req, res) => {
-    console.log("Reached api/thumbnail/:id");
+    })
+    .get("/api/thumbnail/:id", (req, res) => {
+        console.log("Reached api/thumbnail/:id");
 
-    const id = req.params.id;
+        const id = req.params.id;
 
-    // To be determined, we can change the path to resolve it.
-    const thumbnailPath = path.resolve(
-      `/app/media/${id}_thumbnail.jpg`
-    );
+        // To be determined, we can change the path to resolve it.
+        const thumbnailPath = path.resolve(
+            `/app/media/${id}_thumbnail.jpg`
+        );
 
-    if (!fs.existsSync(thumbnailPath)) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
-    }
+        if (!fs.existsSync(thumbnailPath)) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
+        }
 
-    console.log("Sending thumbnail from path:", thumbnailPath);
-    res.sendFile(thumbnailPath);
-  })
-  .get("/api/manifest/:id", (req, res) => {
-    console.log("Reached api/manifest/:id");
+        console.log("Sending thumbnail from path:", thumbnailPath);
+        res.sendFile(thumbnailPath);
+    })
+    .get("/api/manifest/:id", (req, res) => {
+        console.log("Reached api/manifest/:id");
 
-    if (!req.session.userId) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
+        if (!req.session.userId) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "User not logged in" });
+        }
 
-    console.log(`id: ${id}`);
-    var id = req.params.id;
-    if (id.split(".").length == 1) {
-      id += "_output.mpd";
-    }
-    console.log(`id: ${id}`);
+        console.log(`id: ${id}`);
+        var id = req.params.id;
+        if (id.split(".").length == 1) {
+            id += "_output.mpd";
+        }
+        console.log(`id: ${id}`);
 
-    const mediaPath = path.resolve("/app/media");
-    console.log(`path: ${mediaPath}/${id}`);
-    res.sendFile(`${mediaPath}/${id}`);
-  })
-  .post("api/upload", upload.single('mp4file'), (req, res)=>{
-    console.log("Reached api/upload")
+        const mediaPath = path.resolve("/app/media");
+        console.log(`path: ${mediaPath}/${id}`);
+        res.sendFile(`${mediaPath}/${id}`);
+    })
+    .post("/api/upload", upload.single('mp4file'), async (req, res) => {
+        console.log("Reached api/upload");
 
-    if (!req.session.userId) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
-    
-    console.log(req.params);
-    const { author, title } = req.body;
-    const mp4file = req.file;
+        // if (!req.session.userId) {
+        //     return res
+        //         .status(200)
+        //         .json({ status: "ERROR", error: true, message: "User not logged in" });
+        // }
 
-    if (!author || !title || !mp4File) {
-      return res.status(400).json({ status: "ERROR", error: true, message: "Missing required fields" });
-    }
+        const { author, title } = req.body;
+        const mp4file = req.file;
+        console.log("body:", req.body);
+        console.log("mp4file:", mp4file)
 
-    const videoId = uuidv4();
-    console.log({ videoId, author, title, filePath: mp4File.path });
+        if (!author || !title || !mp4file) {
+            return res.status(400).json({ status: "ERROR", error: true, message: "Missing required fields" });
+        }
 
-    res.status(200).json({id: videoId});
-  })
-  ;
+        const videoId = uuidv4();
+
+        const newVideo = new Video({
+            author: author,
+            title: title.replace(" ", ""),
+            description: "random",
+            status: "processing"
+        })
+        await newVideo.save();
+        console.log(newVideo);
+        console.log({ videoId, author, title, filePath: mp4file.path });
+
+        // const user = await User.findById(req.session.userId).exec();
+        // if (user) {
+        //     user.videos.push(newVideo)
+        // }
+
+        // Pad video
+        // const scriptPath = path.resolve('src/routes/scripts-single/pad_video_single.sh');
+        // const command = `${scriptPath} ${mp4file.path}`;
+
+        // // Execute the shell script
+        // exec(command, (error, stdout, stderr) => {
+        //     if (error) {
+        //         console.error(`Error: ${error.message}`);
+        //         return res.status(500).json({ error: 'Error executing shell script', details: error.message });
+        //     }
+        //     if (stderr) {
+        //         console.error(`stderr: ${stderr}`);
+        //         return res.status(500).json({ error: 'Shell script error', details: stderr });
+        //     }
+
+        //     // Respond with the output of the shell script
+        //     res.json({ message: 'Video padded successfully', output: stdout });
+        // });
+
+        res.status(200).json({ id: videoId });
+    })
+    ;
 
 module.exports = router;

@@ -66,7 +66,6 @@ app.get("/play/:id", (req, res) => {
 
 // Upload page
 app.get("/upload", (req, res) => {
-  
     res.sendFile(path.join(__dirname, "/public/components/UploadPage.html"));
   });
 

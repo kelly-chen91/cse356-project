@@ -13,6 +13,7 @@ var VideoSchema = new Schema({
       `${this.title}/${this.title}_output.mpd`;
     },
   },
+  status: {type: String, enum: ["processing", "complete"], required: true}
 });
 
 VideoSchema.virtual("url").get(function () {

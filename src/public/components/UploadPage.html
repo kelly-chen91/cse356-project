@@ -10,13 +10,15 @@
       <form id="uploadForm">
         <input
           type="text"
+          name="title"
           id="title"
           placeholder="Enter Video Title"
           required
         />
-        <input type="text" id="author" placeholder="Enter Author" required />
+        <input type="text" name="author" id="author" placeholder="Enter Author" required />
         <input
           type="file"
+          name="mp4file"
           id="mp4file"
           placeholder="Upload mp4 video file"
           accept="video/mp4"
@@ -39,12 +41,9 @@
 
           try {
             const response = await fetch(
-              "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/upload",
+              "/api/upload",
               {
                 method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
                 body: formData,
               }
             );
@@ -54,7 +53,7 @@
 
             // Handle success or error
             if (data.status === "ERROR")
-              document.getElementById("loginError").style.display = "block";
+              document.getElementById("uploadError").style.display = "block";
           } catch (error) {
             console.error("Upload failed:", error);
           }
