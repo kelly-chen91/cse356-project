@@ -35,6 +35,7 @@
           console.log("UPLOAD VIDEO ACTIVATED");
           const form = document.getElementById("uploadForm");
           const formData = new FormData(form);
+          console.log("formData:", formData);
 
           try {
             const response = await fetch(
