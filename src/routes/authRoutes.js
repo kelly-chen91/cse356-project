@@ -234,10 +234,16 @@ router
     console.log(`Sending ${count} videos to ${userId}...`);
 
     // This is the part where we start using Gorse to get recommendations.
-    let videoNames = gorse.getRecommend({
+    let videoNames = await gorse.getRecommend({
       userId: userId,
       cursorOptions: { n: count },
     });
+
+    if (!videoNames) {
+      videoNames = await gorse.getLatest({
+        category: ""
+      });
+    }
     const user = await User.findById(userId);
     // The result
     const metadata = [];
