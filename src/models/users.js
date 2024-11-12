@@ -9,7 +9,7 @@ var UserSchema = new Schema({
     verificationKey: { type: String, default: "" },
     verified: { type: Boolean, default: false },
     watched: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
-    videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }]
+    videos: [{ type: String }]
 });
 
 UserSchema.virtual('url').get(function () {
