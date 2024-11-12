@@ -51,6 +51,8 @@ services:
   rec_system:
     container_name: recsys
     build: ./rec_system/
+    volumes:
+      - ./rec_system/app.py:/app/
     ports:
       - "5000:5000"
     depends_on:
