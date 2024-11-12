@@ -49,7 +49,7 @@ services:
   
   rec_system:
     container_name: recsys
-    build: ./rec_system/Dockerfile
+    build: ./rec_system/
     ports:
       - "5000:5000"
     depends_on:

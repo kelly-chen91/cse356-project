@@ -38,7 +38,6 @@ def calculate_user_similarity(user_item_matrix):
             if i != j:
                 similarity_matrix[i, j] = 1 - cosine(user_item_matrix[i].toarray(), user_item_matrix[j].toarray())
     return similarity_matrix
-
 # Generate recommendations for a user
 def recommend_for_user(user_id, user_item_matrix_df, similarity_matrix, top_n=5):
     user_index = user_item_matrix_df.index.get_loc(user_id)
