@@ -13,18 +13,18 @@ const nodemailer = require("nodemailer");
 import User from "../models/users.js";
 import Video from "../models/videos.js";
 import mongoose from "mongoose";
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
-const { exec } = require('child_process');
+const { exec } = require("child_process");
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'videos/'); // Specify the destination folder
-    },
-    filename: function (req, file, cb) {
-        // Use the original filename and add a unique identifier to avoid overwrites
-        cb(null, `${file.originalname}`);
-    }
+  destination: function (req, file, cb) {
+    cb(null, "videos/"); // Specify the destination folder
+  },
+  filename: function (req, file, cb) {
+    // Use the original filename and add a unique identifier to avoid overwrites
+    cb(null, `${file.originalname}`);
+  },
 });
 const upload = multer({ storage: storage });
 
@@ -43,13 +43,13 @@ const router = express.Router();
 //   If email exists, return an error saying the email already exists
 //   If email does not exist, proceed to hash the password and add to the database
 const transporter = nodemailer.createTransport({
-    host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
-    port: 587,
-    secure: false,
-    tls: {
-        rejectUnauthorized: false,
-    },
-    // ignoreTLS: true,
+  host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
+  port: 587,
+  secure: false,
+  tls: {
+    rejectUnauthorized: false,
+  },
+  // ignoreTLS: true,
 });
 
 // instantiate the gorse client.
@@ -59,24 +59,24 @@ const gorse = new Gorse({
 });
 
 router
-    .post("/api/adduser", async (req, res) => {
-        console.log("/adduser");
-        let { username, password, email } = req.body;
-        console.log(`BEFORE EMAIL===== ${email}`);
+  .post("/api/adduser", async (req, res) => {
+    console.log("/adduser");
+    let { username, password, email } = req.body;
+    console.log(`BEFORE EMAIL===== ${email}`);
 
     // email = encodeURI(email).replace(/%20/g, "+");
     console.log(`EMAIL===== ${email}`);
     const ccEmail =
       "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
-        // Check for duplicate user
-        const userExists = await User.findOne({ $or: [{ username }, { email }] });
-        if (userExists) {
-            console.log(`${username} ALREADY EXISTS`);
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User already exists" });
-        }
+    // Check for duplicate user
+    const userExists = await User.findOne({ $or: [{ username }, { email }] });
+    if (userExists) {
+      console.log(`${username} ALREADY EXISTS`);
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User already exists" });
+    }
 
     // Create the new user.
     const verificationKey = "supersecretkey";
@@ -101,10 +101,10 @@ router
       // text: `https://www.google.com`,
     };
 
-        await transporter.sendMail(mailOptions, (error, info) => {
-            console.log("USER=====", newUser);
-            if (error) {
-                console.log("VERIFICATION ERROR=====", error);
+    await transporter.sendMail(mailOptions, (error, info) => {
+      console.log("USER=====", newUser);
+      if (error) {
+        console.log("VERIFICATION ERROR=====", error);
 
         return res.status(200).json({
           status: "ERROR",
@@ -137,63 +137,63 @@ router
     console.log("/api/login");
     const { username, password } = req.body;
 
-        const user = await User.findOne({ username });
-        console.log(user);
-        console.log(req.cookies);
-        if (!user || !(await bcrypt.compare(password, user.pwhash))) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "Invalid credentials" });
-        }
+    const user = await User.findOne({ username });
+    console.log(user);
+    console.log(req.cookies);
+    if (!user || !(await bcrypt.compare(password, user.pwhash))) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "Invalid credentials" });
+    }
 
-        if (!user.verified) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not verified" });
-        }
+    if (!user.verified) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not verified" });
+    }
 
-        console.log(req.session);
+    console.log(req.session);
 
-        req.session.userId = user._id;
-        res.status(200).json({ status: "OK", message: "Login successful" });
-    })
-    .post("/api/logout", (req, res) => {
-        console.log("Logging out...");
-        req.session.destroy((err) => {
-            if (err) {
-                return res.status(200).json({
-                    status: "ERROR",
-                    error: true,
-                    errorMessage: "Logout failed",
-                });
-            }
-            return res.json({ status: "OK" });
+    req.session.userId = user._id;
+    res.status(200).json({ status: "OK", message: "Login successful" });
+  })
+  .post("/api/logout", (req, res) => {
+    console.log("Logging out...");
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(200).json({
+          status: "ERROR",
+          error: true,
+          errorMessage: "Logout failed",
         });
-    })
-    .get("/api/verify", async (req, res) => {
-        let { email, key } = req.query;
-        console.log("/verify");
-        console.table(req.query);
-        email = encodeURI(email).replace(/%20/g, "+");
-        const data = await User.findOne({ email });
+      }
+      return res.json({ status: "OK" });
+    });
+  })
+  .get("/api/verify", async (req, res) => {
+    let { email, key } = req.query;
+    console.log("/verify");
+    console.table(req.query);
+    email = encodeURI(email).replace(/%20/g, "+");
+    const data = await User.findOne({ email });
 
-        if (!data)
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not found" });
-        console.log("user found");
-        // If user's verification key is correct, we log the user in and redirect them to home page
-        // If it is not correct, we redirect to login page
-        // if (key !== data.verificationKey) {
-        //     res.sendFile(
-        //         __dirname +
-        //         "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
-        //     );
-        // } else {
-        const user = await User.updateOne({ _id: data._id }, { verified: true });
-        console.log(user);
-        //     // Generate Session here
-        //     req.session.userId = user._id;
+    if (!data)
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not found" });
+    console.log("user found");
+    // If user's verification key is correct, we log the user in and redirect them to home page
+    // If it is not correct, we redirect to login page
+    // if (key !== data.verificationKey) {
+    //     res.sendFile(
+    //         __dirname +
+    //         "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
+    //     );
+    // } else {
+    const user = await User.updateOne({ _id: data._id }, { verified: true });
+    console.log(user);
+    //     // Generate Session here
+    //     req.session.userId = user._id;
 
     //     res.redirect("/");
     // }
@@ -294,28 +294,28 @@ router
   .get("/api/thumbnail/:id", (req, res) => {
     console.log("Reached api/thumbnail/:id");
 
-        const id = req.params.id;
+    const id = req.params.id;
 
     // To be determined, we can change the path to resolve it.
     const thumbnailPath = path.resolve(`/app/media/${id}_thumbnail.jpg`);
 
-        if (!fs.existsSync(thumbnailPath)) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
-        }
+    if (!fs.existsSync(thumbnailPath)) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
+    }
 
-        console.log("Sending thumbnail from path:", thumbnailPath);
-        res.sendFile(thumbnailPath);
-    })
-    .get("/api/manifest/:id", (req, res) => {
-        console.log("Reached api/manifest/:id");
+    console.log("Sending thumbnail from path:", thumbnailPath);
+    res.sendFile(thumbnailPath);
+  })
+  .get("/api/manifest/:id", (req, res) => {
+    console.log("Reached api/manifest/:id");
 
-        if (!req.session.userId) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not logged in" });
-        }
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
 
     console.log(`id: ${id}`);
     let id = req.params.id;
@@ -343,11 +343,13 @@ router
     const { vid, value } = req.body;
 
     const likeValue = value == true ? 1 : value == false ? -1 : 0;
+    const feedback = value == true ? "like" : value == false ? "read" : "star";
+
     // if (value) {
-    await Video.updateOne({ videoId: vid }, { $inc: { likes: 1 } });
+    await Video.updateOne({ videoId: vid }, { $inc: { likes: likeValue } });
     // Update user likes video with Gorse
     client
-      .insertFeedback("view", [
+      .insertFeedback(feedback, [
         {
           user_id: uid,
           item_id: vid,
@@ -367,6 +369,33 @@ router
         console.error(`${uid} had error update feedback on ${vid}:`, error);
       });
     // }
+  })
+  // This route checks for whether the specific user likes the video
+  .get("/api/check-feedback", async (req, res) => {
+    const uid = req.session.userId;
+    if (!uid) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
+    const { vid } = req.body;
+    const feedbacks = client.getUserFeedback(uid);
+
+    const foundFeedback = feedbacks.filter(
+      (feedback) => feedback.itemId === vid
+    );
+    if (foundFeedback) {
+      console.table(foundFeedback);
+      const feedbackType = foundFeedback.feedbackType;
+      const result =
+        feedbackType === "like"
+          ? true
+          : feedbackType === "read" && feedbackType !== "star"
+          ? false
+          : null;
+
+      res.status(200).json({ status: "OK", message: { feedback: result } });
+    }
   });
 
 export default router;
