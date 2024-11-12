@@ -12,6 +12,7 @@ const uuid = require("uuid");
 
 import User from "../models/users.js";
 import Video from "../models/videos.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
@@ -101,14 +102,17 @@ router
 
     // Saving user to gorse.
     const uid = newUser._id;
-    await gorse.insertUser({
-      userId: uid,
-      labels: [],   // Optional labels for the user
-    }).then(response => {
-      console.log(`User ${uid} added to gorse:`, response);
-    }).catch(error => {
-      console.error(`Error adding user ${uid} to gorse:`, error);
-    });
+    await gorse
+      .insertUser({
+        userId: uid,
+        labels: [], // Optional labels for the user
+      })
+      .then((response) => {
+        console.log(`User ${uid} added to gorse:`, response);
+      })
+      .catch((error) => {
+        console.error(`Error adding user ${uid} to gorse:`, error);
+      });
 
     if (!res.headersSent)
       return res
@@ -210,51 +214,62 @@ router
     const mediaPath = path.resolve("/app/media");
     res.sendFile(`${mediaPath}/${filePath}`);
   })
-  .post("/api/videos", (req, res) => {
+  .post("/api/videos", async (req, res) => {
     const { count } = req.body;
-    console.log(`Sending ${count} videos to frontend...`);
-
-    const videosPath = path.resolve("/app/videos");
     const userId = req.session.userId;
+    console.log(`Sending ${count} videos to ${userId}...`);
 
     // This is the part where we start using Gorse to get recommendations.
-    let videoNames = gorse.getRecommend({ userId: userId, cursorOptions: { n: count } });
-    if (!videoNames || videoNames.length < 1) {
-      videoNames = fs.readdirSync(videosPath);
-      videoNames.pop(); // remove m1.json
+    let videoNames = gorse.getRecommend({
+      userId: userId,
+      cursorOptions: { n: count },
+    });
+    const user = await User.findById(userId);
+    // The result
+    const metadata = [];
+    console.log(`Received ${videoNames} from gorse.`);
+    for (const vid in videoNames) {
+      // Get the feedback for this user.
+      let userFeedback = null;
+      gorse
+        .getFeedback({ userId: userId, itemId: vid })
+        .then((res) => {
+          userFeedback = res;
+        })
+        .catch((err) => {
+          console.log(
+            `Error while getting feedback for user ${userId}: ${err}`
+          );
+        });
+
+      // Gather data for this video.
+      Video.findById(vid)
+        .then((res) => {
+          metadata.push({
+            id: res._id,
+            description: res.description,
+            title: res.title,
+            watched: user.watched.contains(vid) ? true : false,
+            liked:
+              userFeedback.FeedbackType === "like"
+                ? true
+                : userFeedback.FeedbackType === "read" &&
+                  !(userFeedback.FeedbackType === "star")
+                ? false
+                : null,
+            likevalues: res.likes,
+          });
+        })
+        .catch((err) => {
+          console.log(`Error while retrieving video meta data from db: ${err}`);
+        });
     }
 
-    fs.readFile(
-      path.join(videosPath, process.env.VIDEO_ID_MAP),
-      "utf8",
-      (err, content) => {
-        if (err) {
-          return res
-            .status(200)
-            .json({ status: "ERROR", error: true, message: err.message });
-        }
-
-        const videoMetadatas = [];
-        const videoList = JSON.parse(content);
-        const start_index = Math.floor(Math.random() * videoNames.length);
-        for (let i = 0; i < count; i++) {
-          const videoName =
-            videoNames[(start_index + i) % (videoNames.length - 1)];
-
-          videoMetadatas.push({
-            id: videoName.split(".")[0],
-            title: videoName,
-            description: videoList[videoName],
-          });
-        }
-        //   console.log(videoMetadatas);
-        return res.status(200).json({
-          status: "OK",
-          videos: videoMetadatas,
-          message: "Successfully sent videos",
-        });
-      }
-    );
+    return res.status(200).json({
+      status: 200,
+      videos: metadata,
+      message: "Successfully sent videos",
+    });
   })
   .get("/api/thumbnail/:id", (req, res) => {
     console.log("Reached api/thumbnail/:id");
@@ -283,7 +298,7 @@ router
     }
 
     console.log(`id: ${id}`);
-    var id = req.params.id;
+    let id = req.params.id;
     if (id.split(".").length == 1) {
       id += "_output.mpd";
     }
@@ -294,7 +309,6 @@ router
     res.sendFile(`${mediaPath}/${id}`);
   })
   .post("/api/like", async (req, res) => {
-
     // Check if user is currently logged in
     const uid = req.session.userId;
     if (!uid) {
@@ -307,24 +321,32 @@ router
 
     // Update video information.
     const { vid, value } = req.body;
-    if (value) {
-      await Video.updateOne({ videoId: vid }, { $inc: { likes: 1 } });
-      // Update user likes video with Gorse
-      client
-        .insertFeedback("view", [
-          {
-            user_id: uid,
-            item_id: vid,
-            timestamp: new Date().toISOString(), // optional
-          },
-        ])
-        .then((response) => {
-          console.log(`${uid} updated feedback on ${vid}`, response);
-        })
-        .catch((error) => {
-          console.error(`${uid} had error update feedback on ${vid}:`, error);
+
+    const likeValue = value == true ? 1 : value == false ? -1 : 0;
+    // if (value) {
+    await Video.updateOne({ videoId: vid }, { $inc: { likes: 1 } });
+    // Update user likes video with Gorse
+    client
+      .insertFeedback("view", [
+        {
+          user_id: uid,
+          item_id: vid,
+          timestamp: new Date().toISOString(), // optional
+        },
+      ])
+      .then((response) => {
+        console.log(`${uid} updated feedback on ${vid}`, response);
+        Video.find({ videoId: vid }).then((vidData) => {
+          const totalLikes = vidData.likes;
+          res
+            .status(200)
+            .json({ status: "OK", message: { likes: totalLikes } });
         });
-    }
+      })
+      .catch((error) => {
+        console.error(`${uid} had error update feedback on ${vid}:`, error);
+      });
+    // }
   });
 
 export default router;
