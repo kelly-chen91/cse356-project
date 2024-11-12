@@ -64,6 +64,11 @@ app.get("/play/:id", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/play.html"));
 });
 
+// Upload page
+app.get("/upload", (req, res) => {
+    res.sendFile(path.join(__dirname, "/public/components/UploadPage.html"));
+  });
+
 // Start the server
 const PORT = process.env.PORT || 80;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
