@@ -108,6 +108,16 @@
         /**
         @TODO Make API call to /api/view to mark video as viewed
         */
+        await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/view",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ vid }),
+          }
+        );
 
         videoContainer.appendChild(video);
         videoContainer.appendChild(playPauseBtn);
