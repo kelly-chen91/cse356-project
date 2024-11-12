@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 var Schema = mongoose.Schema;
 
@@ -16,4 +16,5 @@ UserSchema.virtual('url').get(function () {
     return 'user/' + this._id;
 })
 
-module.exports = mongoose.model('User', UserSchema)
+const User = mongoose.model('User', UserSchema);
+export default User;

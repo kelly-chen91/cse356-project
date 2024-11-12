@@ -1,15 +1,25 @@
-const express = require("express");
-const session = require("express-session"); // for session management
-const MongoStore = require("connect-mongo"); //access to DB for session data
-const connectDB = require("./config/dbConfig");
-const authRoutesRouter = require("./routes/authRoutes");
-const path = require("path");
-const cors = require("cors");
+// Getting all packages.
+import express from "express";
+import session from "express-session"; // for session management
+import MongoStore from "connect-mongo"; //access to DB for session data
+import path from "path";
+import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
-require("dotenv").config();
+// Getting project modules.
+import { connectDB } from "./config/dbConfig.js";
+import authRoutesRouter from "./routes/authRoutes.js";
 
 // Connect to MongoDB
 connectDB();
+
+// Some pages.
+const loginPage = path.resolve("/app/src/public/components/LoginPage.html");
+const indexPage = path.resolve("/app/src/public/index.html");
+const signUpPage = path.resolve("/app/src/public/components/SignupPage.html");
+const playPage = path.resolve("/app/src/public/play.html");
+
 // Initialize the app
 const app = express();
 app.use(
@@ -40,20 +50,19 @@ app.use((req, res, next) => {
 
 app.use("/", authRoutesRouter);
 
-const User = require("./models/users");
-
 // Placeholder for routes and server logic
 app.get("/", (req, res) => {
   console.log("root path...");
+
   if (!req.session.userId) {
     // User not logged in, send to login page
-    res.sendFile(__dirname + "/public/components/LoginPage.html");
-  } else res.sendFile(__dirname + "/public/index.html");
+    res.sendFile(loginPage);
+  } else res.sendFile(indexPage);
 });
 
 // Get user to sign up page
 app.get("/SignupPage.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "components", "SignupPage.html"));
+  res.sendFile(signUpPage);
 });
 
 // Get user to sign up page
@@ -61,7 +70,7 @@ app.get("/play/:id", (req, res) => {
   const id = req.params.id;
   console.log("Reached /play/:id => id =", id);
 
-  res.sendFile(path.join(__dirname, "/public/play.html"));
+  res.sendFile(playPage);
 });
 
 // Upload page

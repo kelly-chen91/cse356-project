@@ -1,11 +1,18 @@
+// Overriding require so that we can have import and require together.
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
+import { Gorse } from "gorsejs";
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
-const User = require("../models/users");
-const Video = require("../models/videos");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 // const uuid = require("uuid");
+
+import User from "../models/users.js";
+import Video from "../models/videos.js";
+import mongoose from "mongoose";
 const { v4: uuidv4 } = require('uuid');
 const multer = require("multer");
 const { exec } = require('child_process');
@@ -23,18 +30,18 @@ const upload = multer({ storage: storage });
 
 const router = express.Router();
 
-//define routes for user
-//1. Sign in
-//  Checks if the email exists in database
-//  If email exists, compare with the hashed password in the database
-//  If email does not exist or the password does not match to the database, throw error
-//2. Sign out
-//  Destroy the session
-//  Return to welcome page
-//3. Sign up
-//  Checks if the email exists in database
-//  If email exists, return an error saying the email already exists
-//  If email does not exist, proceed to hash the password and add to the database
+// define routes for user
+// 1. Sign in
+//   Checks if the email exists in database
+//   If email exists, compare with the hashed password in the database
+//   If email does not exist or the password does not match to the database, throw error
+// 2. Sign out
+//   Destroy the session
+//   Return to welcome page
+// 3. Sign up
+//   Checks if the email exists in database
+//   If email exists, return an error saying the email already exists
+//   If email does not exist, proceed to hash the password and add to the database
 const transporter = nodemailer.createTransport({
     host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
     port: 587,
@@ -44,6 +51,13 @@ const transporter = nodemailer.createTransport({
     },
     // ignoreTLS: true,
 });
+
+// instantiate the gorse client.
+const gorse = new Gorse({
+  endpoint: "http://gorse:8088",
+  secret: "zhenghaoz",
+});
+
 router
     .post("/api/adduser", async (req, res) => {
         console.log("/adduser");
@@ -64,47 +78,64 @@ router
                 .json({ status: "ERROR", error: true, message: "User already exists" });
         }
 
-        const verificationKey = "supersecretkey";
-        const pwhash = await bcrypt.hash(password, 10);
-        const newUser = new User({
-            username: username,
-            email: email,
-            pwhash: pwhash,
-            verificationKey: verificationKey,
-            verified: false,
-        });
-        await newUser.save();
-        console.log(`${username} CREATED`);
+    // Create the new user.
+    const verificationKey = "supersecretkey";
+    const pwhash = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      username: username,
+      email: email,
+      pwhash: pwhash,
+      verificationKey: verificationKey,
+      verified: false,
+    });
+    await newUser.save();
+    console.log(`${username} CREATED with id ${newUser._id}`);
 
-        const mailOptions = {
-            from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
-            to: email,
-            cc: ccEmail,
-            subject: "Please verify your account",
-            text: `http://${req.headers.host}/api/verify?email=${email}&key=${verificationKey}`,
-            // text: `https://www.google.com`,
-        };
+    // Send out verification email.
+    const mailOptions = {
+      from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
+      to: email,
+      cc: ccEmail,
+      subject: "Please verify your account",
+      text: `http://${req.headers.host}/api/verify?email=${email}&key=${verificationKey}`,
+      // text: `https://www.google.com`,
+    };
 
         await transporter.sendMail(mailOptions, (error, info) => {
             console.log("USER=====", newUser);
             if (error) {
                 console.log("VERIFICATION ERROR=====", error);
 
-                return res.status(200).json({
-                    status: "ERROR",
-                    error: true,
-                    message: "Failed to send email",
-                });
-            }
+        return res.status(200).json({
+          status: "ERROR",
+          error: true,
+          message: "Failed to send email",
         });
-        if (!res.headersSent)
-            return res
-                .status(200)
-                .json({ status: "OK", message: `${username} successfully added.` });
-    })
-    .post("/api/login", async (req, res) => {
-        console.log("/api/login");
-        const { username, password } = req.body;
+      }
+    });
+
+    // Saving user to gorse.
+    const uid = newUser._id;
+    await gorse
+      .insertUser({
+        userId: uid,
+        labels: [], // Optional labels for the user
+      })
+      .then((response) => {
+        console.log(`User ${uid} added to gorse:`, response);
+      })
+      .catch((error) => {
+        console.error(`Error adding user ${uid} to gorse:`, error);
+      });
+
+    if (!res.headersSent)
+      return res
+        .status(200)
+        .json({ status: "OK", message: `${username} successfully added.` });
+  })
+  .post("/api/login", async (req, res) => {
+    console.log("/api/login");
+    const { username, password } = req.body;
 
         const user = await User.findOne({ username });
         console.log(user);
@@ -164,40 +195,95 @@ router
         //     // Generate Session here
         //     req.session.userId = user._id;
 
-    const videoNames = fs.readdirSync(videosPath);
-    videoNames.pop(); // remove m1.json
+    //     res.redirect("/");
+    // }
+    return res
+      .status(200)
+      .json({ status: "OK", message: "User verified successfully" });
+  })
+  .post("/api/check-auth", (req, res) => {
+    if (!req.session.userId) {
+      return res.status(200).json({
+        status: "ERROR",
+        error: true,
+        isLoggedIn: false,
+        userId: "",
+      });
+    }
+    return res
+      .status(200)
+      .json({ status: "OK", isLoggedIn: true, userId: req.session.userId });
+  })
+  .get("/media/:path", async (req, res) => {
+    console.log("Reached media/:path");
+    console.log("path: ", req.params.path);
 
-    fs.readFile(
-      path.join(videosPath, process.env.VIDEO_ID_MAP),
-      "utf8",
-      (err, content) => {
-        if (err) {
-          return res
-            .status(200)
-            .json({ status: "ERROR", error: true, message: err.message });
-        }
+    if (!req.session.userId) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
 
-        const videoMetadatas = [];
-        const videoList = JSON.parse(content);
-        const start_index = Math.floor(Math.random() * videoNames.length);
-        for (let i = 0; i < count; i++) {
-          const videoName =
-            videoNames[(start_index + i) % (videoNames.length - 1)];
+    const filePath = req.params.path;
+    const mediaPath = path.resolve("/app/media");
+    res.sendFile(`${mediaPath}/${filePath}`);
+  })
+  .post("/api/videos", async (req, res) => {
+    const { count } = req.body;
+    const userId = req.session.userId;
+    console.log(`Sending ${count} videos to ${userId}...`);
 
-          videoMetadatas.push({
-            id: videoName.split(".")[0],
-            title: videoName,
-            description: videoList[videoName],
-          });
-        }
-        //   console.log(videoMetadatas);
-        return res.status(200).json({
-          status: "OK",
-          videos: videoMetadatas,
-          message: "Successfully sent videos",
+    // This is the part where we start using Gorse to get recommendations.
+    let videoNames = gorse.getRecommend({
+      userId: userId,
+      cursorOptions: { n: count },
+    });
+    const user = await User.findById(userId);
+    // The result
+    const metadata = [];
+    console.log(`Received ${videoNames} from gorse.`);
+    for (const vid in videoNames) {
+      // Get the feedback for this user.
+      let userFeedback = null;
+      gorse
+        .getFeedback({ userId: userId, itemId: vid })
+        .then((res) => {
+          userFeedback = res;
+        })
+        .catch((err) => {
+          console.log(
+            `Error while getting feedback for user ${userId}: ${err}`
+          );
         });
-      }
-    );
+
+      // Gather data for this video.
+      Video.findById(vid)
+        .then((res) => {
+          metadata.push({
+            id: res._id,
+            description: res.description,
+            title: res.title,
+            watched: user.watched.contains(vid) ? true : false,
+            liked:
+              userFeedback.FeedbackType === "like"
+                ? true
+                : userFeedback.FeedbackType === "read" &&
+                  !(userFeedback.FeedbackType === "star")
+                ? false
+                : null,
+            likevalues: res.likes,
+          });
+        })
+        .catch((err) => {
+          console.log(`Error while retrieving video meta data from db: ${err}`);
+        });
+    }
+
+    return res.status(200).json({
+      status: 200,
+      videos: metadata,
+      message: "Successfully sent videos",
+    });
   })
   .get("/api/thumbnail/:id", (req, res) => {
     console.log("Reached api/thumbnail/:id");
@@ -225,12 +311,12 @@ router
                 .json({ status: "ERROR", error: true, message: "User not logged in" });
         }
 
-        console.log(`id: ${id}`);
-        var id = req.params.id;
-        if (id.split(".").length == 1) {
-            id += "_output.mpd";
-        }
-        console.log(`id: ${id}`);
+    console.log(`id: ${id}`);
+    let id = req.params.id;
+    if (id.split(".").length == 1) {
+      id += "_output.mpd";
+    }
+    console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("/app/media");
     console.log(`path: ${mediaPath}/${id}`);
@@ -238,19 +324,43 @@ router
   })
   .post("/api/like", async (req, res) => {
     // Check if user is currently logged in
-    if (!req.session.userId) {
+    const uid = req.session.userId;
+    if (!uid) {
       return res.status(200).json({
         status: "ERROR",
         error: true,
         message: "User is not logged in.",
       });
     }
-    const { id, value } = req.body;
-    if (value) {
-      await Video.updateOne({ videoId: id }, { $inc: { likes: 1 } });
-      // Update user likes video with Gorse
 
-    }
+    // Update video information.
+    const { vid, value } = req.body;
+
+    const likeValue = value == true ? 1 : value == false ? -1 : 0;
+    // if (value) {
+    await Video.updateOne({ videoId: vid }, { $inc: { likes: 1 } });
+    // Update user likes video with Gorse
+    client
+      .insertFeedback("view", [
+        {
+          user_id: uid,
+          item_id: vid,
+          timestamp: new Date().toISOString(), // optional
+        },
+      ])
+      .then((response) => {
+        console.log(`${uid} updated feedback on ${vid}`, response);
+        Video.find({ videoId: vid }).then((vidData) => {
+          const totalLikes = vidData.likes;
+          res
+            .status(200)
+            .json({ status: "OK", message: { likes: totalLikes } });
+        });
+      })
+      .catch((error) => {
+        console.error(`${uid} had error update feedback on ${vid}:`, error);
+      });
+    // }
   });
 
-module.exports = router;
+export default router;

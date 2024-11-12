@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "connect-mongo": "^5.1.0",
@@ -14,6 +13,9 @@
     "nodemailer": "^6.9.15",
     "nodemon": "^3.1.7",
     "tslib": "^2.8.1",
-    "uuid": "^10.0.0"
-  }
+    "uuid": "^10.0.0",
+    "collaborative-filter": "^1.0.0-beta.3",
+    "gorsejs": "^0.4.8"
+  },
+  "type": "module"
 }
