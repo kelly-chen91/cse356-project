@@ -373,7 +373,7 @@ router
         .json({ status: "ERROR", error: true, message: "User not logged in" });
     }
     const { vid } = req.body;
-    const feedbacks = client.getUserFeedback(uid);
+    const feedbacks = await client.getUserFeedback(uid);
 
     const foundFeedback = feedbacks.filter(
       (feedback) => feedback.itemId === vid
