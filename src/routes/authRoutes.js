@@ -241,7 +241,7 @@ router
 
     if (!videoNames) {
       videoNames = await gorse.getLatest({
-        category: ""
+        category: "",
       });
     }
     const user = await User.findById(userId);
@@ -286,7 +286,7 @@ router
     }
 
     return res.status(200).json({
-      status: 200,
+      status: "OK",
       videos: metadata,
       message: "Successfully sent videos",
     });
@@ -396,6 +396,29 @@ router
 
       res.status(200).json({ status: "OK", message: { feedback: result } });
     }
+  })
+  .post("/api/view", async (req, res) => {
+    const uid = req.session.userId;
+    if (!uid)
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    const { id } = req.body;
+    // Check if user has seen video before
+    const user = await User.findById(uid).populate("watched");
+    const foundVideo = user.watched.find((video) => video.videoId === id);
+    const video = await Video.find({ videoId: id });
+    let previouslyWatched = false;
+    if (foundVideo) {
+      previouslyWatched = true;
+    } else {
+      user.watched.push(video._id);
+      await user.save();
+    }
+    return res.status(200).json({
+      status: "OK",
+      message: { viewed: previouslyWatched },
+    });
   });
 
 export default router;
