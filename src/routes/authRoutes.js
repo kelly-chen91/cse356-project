@@ -323,11 +323,13 @@ router
     const { vid, value } = req.body;
 
     const likeValue = value == true ? 1 : value == false ? -1 : 0;
+    const feedback = value == true ? "like" : value == false ? "read" : "star";
+
     // if (value) {
-    await Video.updateOne({ videoId: vid }, { $inc: { likes: 1 } });
+    await Video.updateOne({ videoId: vid }, { $inc: { likes: likeValue } });
     // Update user likes video with Gorse
     client
-      .insertFeedback("view", [
+      .insertFeedback(feedback, [
         {
           user_id: uid,
           item_id: vid,
@@ -347,6 +349,29 @@ router
         console.error(`${uid} had error update feedback on ${vid}:`, error);
       });
     // }
+  })
+  // This route checks for whether the specific user likes the video
+  .get("/api/check-feedback", async (req, res) => {
+    const uid = req.session.userId;
+    if (!uid) {
+      return res
+        .status(200)
+        .json({ status: "ERROR", error: true, message: "User not logged in" });
+    }
+    const { vid } = req.body;
+    const feedbacks = client.getUserFeedback(uid);
+
+    const foundFeedback = feedbacks.filter(
+      (feedback) => feedback.itemId === vid
+    );
+    if (foundFeedback) {
+      console.table(foundFeedback);
+      const feedbackType = foundFeedback.feedbackType;
+      const result =
+        feedbackType === "like" ? true : (feedbackType === "read" && feedbackType !== "star") ? false : null;
+
+      res.status(200).json({ status: "OK", message: { feedback: result } });
+    }
   });
 
 export default router;
