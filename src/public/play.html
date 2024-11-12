@@ -13,6 +13,20 @@
       const videos = [];
 
       const count = 1;
+
+      async function updateLike(value) {
+        const like = value;
+        const response = await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id, like }),
+          }
+        );
+      }
       async function getVideos() {
         const response = await fetch(
           "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
@@ -62,6 +76,48 @@
             video.pause();
           }
         });
+
+        const checkFeedback = await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/check-feedback",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ vid }),
+          }
+        );
+
+        // Like/Dislike button
+        const likeBtn = document.createElement("button");
+        likeBtn.id = "likeBtn";
+        likeBtn.innerHTML = "Like";
+        likeBtn.disabled = checkFeedback == true ? true : false;
+        likeBtn.addEventListener("click", async function () {
+          await updateLike(true);
+        });
+
+        const dislikeBtn = document.createElement("button");
+        dislikeBtn.id = "dislikeBtn";
+        dislikeBtn.innerHTML = "Dislike";
+        dislikeBtn.disabled = checkFeedback == false ? true : false;
+        dislikeBtn.addEventListener("click", async function () {
+          await updateLike(false);
+        });
+
+        /**
+        @TODO Make API call to /api/view to mark video as viewed
+        */
+        await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/view",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ vid }),
+          }
+        );
 
         videoContainer.appendChild(video);
         videoContainer.appendChild(playPauseBtn);
