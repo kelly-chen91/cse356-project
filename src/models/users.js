@@ -9,9 +9,9 @@ var UserSchema = new Schema({
   verificationKey: { type: String, default: "" },
   verified: { type: Boolean, default: false },
   videos: [{ type: String }],
-  liked: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
-  disliked: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
-  watched: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
+  liked: [{ type: String, default: [] }],  
+  disliked: [{ type: String, default: [] }],
+  watched: [{ type: String, default: [] }],
 });
 
 UserSchema.virtual("url").get(function () {

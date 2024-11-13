@@ -21,10 +21,8 @@ var VideoSchema = new Schema({
     },
   },
   status: { type: String, enum: ["processing", "complete"], required: true },
-  likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: 0 }],
-  dislikedBy: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "User", default: 0 },
-  ],
+  likedBy: [{ type: String, default: [] }],
+  dislikedBy: [{ type: String, default: [] }],
 });
 
 VideoSchema.virtual("url").get(function () {
