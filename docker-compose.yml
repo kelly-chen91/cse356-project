@@ -31,7 +31,7 @@ services:
       - "80:80"
     volumes:
       - ./src:/app/src # Mount your local directory to the container
-      - ./media:/app/media # Mounting the mounted volume to the container.
+      - /mnt/media:/app/media # Mounting the mounted volume to the container.
       - ./padded_videos:/app/padded_videos
       - ./videos:/app/videos
     env_file:
@@ -40,26 +40,26 @@ services:
       - mail
       - mongodb
 
-  # Redis for Gorse
-  redis:
-    container_name: redis
-    image: redis
-    restart: unless-stopped
-    ports:
-      - 6379:6379
+  # # Redis for Gorse
+  # redis:
+  #   container_name: redis
+  #   image: redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - 6379:6379
   
-  rec_system:
-    container_name: recsys
-    build: ./rec_system/
-    volumes:
-      - ./rec_system/app.py:/app/
-    ports:
-      - "5000:5000"
-    depends_on:
-      - redis
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+  # rec_system:
+  #   container_name: recsys
+  #   build: ./rec_system/
+  #   volumes:
+  #     - ./rec_system/app.py:/app/
+  #   ports:
+  #     - "5000:5000"
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
 
 volumes:
   mongo-data:
