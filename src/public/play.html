@@ -4,10 +4,37 @@
     <title>MPEG-DASH Media Player</title>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
   </head>
-
+  <style>
+    .container {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+    .video-wrapper {
+      /* height: 100vh; */
+      width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+      position: relative;
+      padding: 0;
+      margin: 0;
+    }
+    video {
+      width: 100%;
+      height: 85vh;
+      object-fit: contain;
+      overflow: clip;
+      overflow-clip-margin: content-box;
+    }
+  </style>
   <body>
     <div id="container"></div>
-    <script>
+    <!-- <script>
       const container = document.getElementById("container");
 
       const videos = [];
@@ -96,6 +123,7 @@
         // Like/Dislike button
         const likeBtn = document.createElement("button");
         likeBtn.id = "likeBtn";
+        likeBtn.name = "like"
         likeBtn.innerHTML = "Like";
         likeBtn.addEventListener("click", async function () {
           console.log("SENDING LIKES ....");
@@ -104,6 +132,7 @@
 
         const dislikeBtn = document.createElement("button");
         dislikeBtn.id = "dislikeBtn";
+        dislikeBtn.name = "dislike"
         dislikeBtn.innerHTML = "Dislike";
         dislikeBtn.addEventListener("click", async function () {
           console.log("SENDING DISLIKES ....");
@@ -121,43 +150,305 @@
       }
 
       window.onload = function () {
+        const tempVideos = ['5889739-uhd_2160_3840_25fps', '4194963-hd_1920_1080_24fps', '3769952-hd_1920_1080_25fps', '3249808-uhd_3840_2160_25fps']
         const id = window.location.pathname.split("/")[2];
         videos.push(id);
 
         loadVideo(id);
-        getVideos();
+        tempVideos.forEach((videoId) => {
+            videos.push(videoId)
+            loadVideo(videoId);
+          });
+        // getVideos();
       };
 
-    //   window.addEventListener("scroll", () => {
-    //     // Check if we are near the bottom of the page
-    //     if (
-    //       window.innerHeight + window.scrollY >=
-    //       document.body.offsetHeight - 100
-    //     ) {
-    //       getVideos();
-    //     } else {
-    //       // Calculate the index of the video based on the scroll position
-    //       const videoIndex = Math.floor(window.scrollY / 120) % videos.length;
+      window.addEventListener("scroll", () => {
+        // Check if we are near the bottom of the page
+        if (
+          window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 100
+        ) {
+        //   getVideos();
+        } else {
+          // Calculate the index of the video based on the scroll position
+          const videoIndex = Math.floor(window.scrollY / 120) % videos.length;
 
-    //       // Update the URL for the current video
-    //       window.history.replaceState(
-    //         null,
-    //         null,
-    //         `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videos[videoIndex]}`
-    //       );
+          // Update the URL for the current video
+          window.history.replaceState(
+            null,
+            null,
+            `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videos[videoIndex]}`
+          );
 
-    //       // Find the next video section element
-    //       const nextVideoSection = document.getElementById(
-    //         `video${videoIndex + 1}`
-    //       ); // Assumes video IDs are in the format 'video1', 'video2', etc.
+          // Find the next video section element
+          const nextVideoSection = document.getElementById(
+            `video${videoIndex + 1}`
+          ); // Assumes video IDs are in the format 'video1', 'video2', etc.
 
-    //       // Check if the next video section exists
-    //       if (nextVideoSection) {
-    //         // Scroll to the next video section smoothly
-    //         nextVideoSection.scrollIntoView({ behavior: "smooth" });
-    //       }
-    //     }
-    //   });
+          // Check if the next video section exists
+          if (nextVideoSection) {
+            // Scroll to the next video section smoothly
+            nextVideoSection.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      });
+    </script> -->
+    <script>
+        const videoContainer = document.getElementById("container");
+        
+        // Create a single global play/pause button
+        const playPauseBtn = document.createElement("div");
+        playPauseBtn.id = "playPauseBtn";
+        playPauseBtn.style.display = "block";
+        playPauseBtn.innerHTML = "Play/Pause";
+        playPauseBtn.style.position = "fixed";
+        playPauseBtn.style.bottom = "10px";
+        playPauseBtn.style.right = "10px";
+        playPauseBtn.style.cursor = "pointer";
+        playPauseBtn.style.padding = "5px 10px";
+        playPauseBtn.style.background = "rgba(0,0,0,0.7)";
+        playPauseBtn.style.color = "white";
+        playPauseBtn.style.borderRadius = "5px";
+
+        let currentVideo = null;
+        // Function to toggle play/pause for the current video
+        playPauseBtn.addEventListener("click", () => {
+            console.log(currentVideo)
+            if (currentVideo) {
+                if (currentVideo.paused) {
+                    currentVideo.play();
+                } else {
+                    currentVideo.pause();
+                }
+            }
+        });
+
+        videoContainer.appendChild(playPauseBtn)
+
+      //const videos = [];
+      async function getVideos(count) {
+        const videos = [];
+        const response = await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ count }),
+          }
+        );
+
+        if (response.ok) {
+          const videoMetadatas = await response.json();
+          console.log(videoMetadatas);
+          videoMetadatas.videos.forEach((video) => {
+            videos.push(video);
+            loadVideo(video);
+          });
+        }
+        // console.log(videos)
+        return videos;
+      }
+
+      async function loadVideo(vid) {
+        console.log(`Loading Video ${vid}`);
+        var video = document.createElement("video");
+        video.controls = true;
+        video.dataset.id = vid.id;
+        video.src = `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${vid.manifest}`;
+        // video.preload = "auto"; // Set preload behavior
+        // video.load(); // Start preloading the video
+
+        var videoContainer = document.createElement("div");
+        videoContainer.className = "video-wrapper";
+
+        var player = dashjs.MediaPlayer().create();
+        player.initialize(
+          video,
+          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${vid.manifest}`,
+          true
+        );
+        player.preload()
+
+        console.log("CALLING API/VIEW");
+        /**
+          @TODO Make API call to /api/view to mark video as viewed
+          */
+        await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/view",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id: vid.id }),
+            // body: id,
+          }
+        );
+
+        // Like/Dislike button
+        const likeBtn = document.createElement("button");
+        likeBtn.id = "likeBtn";
+        likeBtn.name = "like";
+        likeBtn.innerHTML = "Like";
+        likeBtn.addEventListener("click", async function () {
+          console.log("SENDING LIKES ....");
+          await updateLike(vid.id, true);
+        });
+
+        const dislikeBtn = document.createElement("button");
+        dislikeBtn.id = "dislikeBtn";
+        dislikeBtn.name = "dislike";
+        dislikeBtn.innerHTML = "Dislike";
+        dislikeBtn.addEventListener("click", async function () {
+          console.log("SENDING DISLIKES ....");
+
+          await updateLike(vid.id, false);
+        });
+
+        videoContainer.appendChild(video);
+        videoContainer.appendChild(likeBtn);
+        videoContainer.appendChild(dislikeBtn);
+         // Listen for the 'canplaythrough' event to ensure the video is preloaded
+         video.addEventListener("canplaythrough", () => {
+            // Move the preloaded video to the visible DOM
+            container.appendChild(videoContainer);
+        });
+      }
+
+      // Function to handle URL update
+      function updateUrl(videoId) {
+        window.history.replaceState(
+          null,
+          null,
+          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videoId}`
+        );
+      }
+
+      // Function to load initial and subsequent videos
+      let currentPage = 0;
+      let isLoading = false;
+
+      async function loadVideos() {
+        if (isLoading) return;
+        isLoading = true;
+
+        const videos = await getVideos(10);
+
+        console.table("VIDEOS ", videos);
+        videos.forEach(async (video) => {
+          if (video.id !== undefined) loadVideo(video);
+        });
+
+        currentPage++;
+        isLoading = false;
+      }
+
+      let cnt = 1;
+
+      // Intersection Observer to detect the last video
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const video = entry.target.querySelector("video");
+            const videoId = video.dataset.id;
+            if (entry.isIntersecting) {
+                currentVideo = video; // Set the current video in view
+              updateUrl(videoId);
+              video.play();
+              console.log("Intersection observed for video ID:", videoId);
+              entry.target.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+              cnt = cnt + 1;
+              // Load more videos if this is the last one
+              if (entry.target === videoContainer.lastElementChild || cnt % 8 === 0) {
+                loadVideos();
+              }
+            } else {
+              video.pause();
+            }
+          });
+        },
+        { threshold: 0.3, rootMargin: "100px" }
+      );
+
+      async function loadOne(videoId) {
+        console.log("Load one:", videoId);
+        let response = await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/one-video",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ videoId }),
+          }
+        );
+        isLoading = true;
+        let video = await response.json();
+        console.log("Video:", video);
+        video = video.video;
+        console.table("initializing video: ", video);
+        loadVideo(video);
+      }
+
+      // Initialize the infinite scroll
+      async function initialize() {
+        const id = window.location.pathname.split("/")[2];
+
+        console.log("LOADING FIRST VIDEO");
+
+        loadVideos(); // Load initial set of videos
+        await loadOne(id);
+        loadOne("7998251-hd_1080_1920_24fps");
+        loadOne("6252812-uhd_2560_1440_30fps");
+        loadOne("15004793-hd_1920_1080_24fps");
+
+        loadOne("7274842-uhd_2160_4096_25fps");
+        loadOne("8088301-uhd_4096_2160_24fps");
+        loadOne("8488698-hd_1920_1080_25fps");
+
+
+        loadOne("855379-hd_1920_1080_30fps");
+        loadOne("15004793-hd_1920_1080_24fps");
+        
+        // await loadOne("8088301-uhd_4096_2160_24fps")
+        // await loadOne("8488698-hd_1920_1080_25fps")
+
+        // await loadOne("8488698-hd_1920_1080_25fps")
+        // await loadOne("8088301-uhd_4096_2160_24fps")
+        // await loadOne("6568193-uhd_4096_2160_25fps")
+        // await loadOne("8488698-hd_1920_1080_25fps")
+        // await loadOne("15004793-hd_1920_1080_24fps")
+
+        isLoading = false;
+        const videos = document.querySelectorAll(".video-wrapper");
+        videos.forEach((video) => observer.observe(video));
+      }
+
+      // Observe new videos as they are added
+      const mutationObserver = new MutationObserver(() => {
+        const newVideos = document.querySelectorAll(
+          ".video-wrapper:not([data-observed])"
+        );
+        newVideos.forEach((video) => {
+          observer.observe(video);
+          video.setAttribute("data-observed", "true");
+        });
+      });
+
+      mutationObserver.observe(videoContainer, { childList: true });
+
+      initialize();
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          document.querySelectorAll("video").forEach((video) => video.pause());
+        }
+      });
     </script>
   </body>
 </html>
