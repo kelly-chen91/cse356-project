@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import fs from "fs";
 import Video from "../src/models/videos.js";
+import User from "../src/models/users.js";
 import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
@@ -17,7 +18,7 @@ mongoose
     console.log("Connected to MongoDB");
 
     await Video.deleteMany({});
-
+    await User.deleteMany({});
     // console.log(jsonData);
     for (const key in jsonData) {
       console.log(`${key}: ${jsonData[key]}`);
@@ -34,7 +35,6 @@ mongoose
       await newVideo.save();
       console.log(`Saved _id: ${newVideo._id}`);
     }
-
     console.log("Data inserted successfully to mongoDB!");
     mongoose.disconnect();
   })

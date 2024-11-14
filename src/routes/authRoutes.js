@@ -200,7 +200,7 @@ router
   })
   .get("/media/:path", async (req, res) => {
     console.log("Reached media/:path");
-    console.log("path: ", req.params.path);
+    // console.log("path: ", req.params.path);
 
     if (!req.session.userId) {
       return res
@@ -217,6 +217,8 @@ router
     const { count } = req.body;
     const userId = req.session.userId;
 
+    console.log("COUNT=", count);
+
     // Cache all users and videos at once
     const [users, videos] = await Promise.all([
       User.find({}).exec(),
@@ -231,7 +233,7 @@ router
       {}
     );
 
-    console.log(users);
+    // console.log(users);
 
     const recommendedVideos = new Set();
     const user = userMap[userId];
@@ -377,7 +379,7 @@ router
     // console.log(`id: ${id}`);
 
     const mediaPath = path.resolve("/app/media");
-    console.log(`path: ${mediaPath}/${id}`);
+    // console.log(`path: ${mediaPath}/${id}`);
     res.sendFile(`${mediaPath}/${id}`);
   })
   .post("/api/like", async (req, res) => {

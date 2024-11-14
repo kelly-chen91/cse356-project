@@ -9,25 +9,28 @@
     <script>
         const videoListContainer = document.getElementById("videoList");
         async function getThumbnails() {
-          try {
-            const count = 10;
-            const response = await fetch(
-              "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ count }),
-              }
-            );
+        //   try {
+            const videoIds = ["3818528-uhd_3840_2160_30fps", "3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps","3818528-uhd_3840_2160_30fps"];
+
+            // const count = 10;
+
+            // const response = await fetch(
+            //   "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
+            //   {
+            //     method: "POST",
+            //     headers: {
+            //       "Content-Type": "application/json",
+            //     },
+            //     body: JSON.stringify({ count }),
+            //   }
+            // );
   
-            if (response.ok) {
-              const videoMetadatas = await response.json();
-              const videos = videoMetadatas.videos;
+            // if (response.ok) {
+            //   const videoMetadatas = await response.json();
+            //   const videos = videoMetadatas.videos;
   
-              videos.forEach(async (video) => {
-                const id = video.id;
+              videoIds.forEach(async (id) => {
+                // const id = video.id;
   
                 const thumbnailMetadata = await fetch(
                   `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/thumbnail/${id}`,
@@ -43,12 +46,12 @@
   
                 displayThumbnail(thumbnailUrl, id);
               });
-            } else {
-              console.log("Failed to fetch thumbnails");
-            }
-          } catch (error) {
-            console.log("Error occured during fetch:", error);
-          }
+        //     } else {
+        //       console.log("Failed to fetch thumbnails");
+        //     }
+        //   } catch (error) {
+        //     console.log("Error occured during fetch:", error);
+        //   }
         }
   
         function displayThumbnail(url, id) {
@@ -56,7 +59,8 @@
           img.src = url;
           img.alt = "thumbnail";
           img.onclick = function () {
-            handleThumbnailClick(id);
+            window.location.href = `/play/${id}`;
+            // handleThumbnailClick(id);
           };
           videoListContainer.appendChild(img);
         }

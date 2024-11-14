@@ -24,59 +24,70 @@ const uploadPage = path.resolve("/app/src/public/components/UploadPage.html");
 // Initialize the app
 const app = express();
 app.use(
-    session({
-        secret: "supersecret difficult to guess string",
-        cookie: { httpOnly: true, maxAge: 100 * 60 * 60 },
-        resave: false,
-        saveUninitialize: false,
-        store: MongoStore.create({ mongoUrl: process.env.MONGO_URL }),
-    })
+  session({
+    secret: "supersecret difficult to guess string",
+    cookie: { httpOnly: true, maxAge: 100 * 60 * 60 },
+    resave: false,
+    saveUninitialize: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URL }),
+  })
 );
 
 // Middleware for JSON and parsing requests
 // app.use(express.static(path.join(__dirname, "public")));
 app.use(
-    cors({
-        origin: "0.0.0.0:80",
-        // methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD'],
-        credentials: true,
-    })
+  cors({
+    origin: "0.0.0.0:80",
+    // methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD'],
+    credentials: true,
+  })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-    res.setHeader("X-CSE356", "66d11e647f77bf55c5003c0b");
-    next();
+  res.setHeader("X-CSE356", "66d11e647f77bf55c5003c0b");
+  next();
 });
 
 app.use("/", authRoutesRouter);
 
 // Placeholder for routes and server logic
 app.get("/", (req, res) => {
-    console.log("root path...");
+  console.log("root path...");
 
-    if (!req.session.userId) {
-        // User not logged in, send to login page
-        res.sendFile(loginPage);
-    } else res.sendFile(indexPage);
+  if (!req.session.userId) {
+    // User not logged in, send to login page
+    res.sendFile(loginPage);
+  } else res.sendFile(indexPage);
 });
 
 // Get user to sign up page
 app.get("/SignupPage.html", (req, res) => {
-    res.sendFile(signUpPage);
+  res.sendFile(signUpPage);
 });
 
 // Get user to sign up page
 app.get("/play/:id", (req, res) => {
-    const id = req.params.id;
-    console.log("Reached /play/:id => id =", id);
+  const uid = req.session.userId;
+  if (!uid)
+    return res
+      .status(200)
+      .json({ status: "ERROR", error: true, message: "User not logged in" });
 
-    res.sendFile(playPage);
+  const id = req.params.id;
+  console.log("Reached /play/:id => id =", id);
+
+  res.sendFile(playPage);
 });
 
 // Upload page
 app.get("/upload", (req, res) => {
-    res.sendFile(uploadPage);
+  const uid = req.session.userId;
+  if (!uid)
+    return res
+      .status(200)
+      .json({ status: "ERROR", error: true, message: "User not logged in" });
+  res.sendFile(uploadPage);
 });
 
 // Start the server

@@ -8,8 +8,8 @@
     .container {
       height: 100vh;
       overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
+      /* scroll-snap-type: y mandatory; */
+      /* scroll-behavior: smooth; */
     }
     .video-wrapper {
       /* height: 100vh; */
@@ -18,8 +18,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      scroll-snap-align: center;
-      scroll-snap-stop: always;
+      /* scroll-snap-align: center;
+      scroll-snap-stop: always; */
       position: relative;
       padding: 0;
       margin: 0;
@@ -194,36 +194,36 @@
       });
     </script> -->
     <script>
-        const videoContainer = document.getElementById("container");
-        
-        // Create a single global play/pause button
-        const playPauseBtn = document.createElement("div");
-        playPauseBtn.id = "playPauseBtn";
-        playPauseBtn.style.display = "block";
-        playPauseBtn.innerHTML = "Play/Pause";
-        playPauseBtn.style.position = "fixed";
-        playPauseBtn.style.bottom = "10px";
-        playPauseBtn.style.right = "10px";
-        playPauseBtn.style.cursor = "pointer";
-        playPauseBtn.style.padding = "5px 10px";
-        playPauseBtn.style.background = "rgba(0,0,0,0.7)";
-        playPauseBtn.style.color = "white";
-        playPauseBtn.style.borderRadius = "5px";
+      const videoContainer = document.getElementById("container");
 
-        let currentVideo = null;
-        // Function to toggle play/pause for the current video
-        playPauseBtn.addEventListener("click", () => {
-            console.log(currentVideo)
-            if (currentVideo) {
-                if (currentVideo.paused) {
-                    currentVideo.play();
-                } else {
-                    currentVideo.pause();
-                }
-            }
-        });
+      // Create a single global play/pause button
+      const playPauseBtn = document.createElement("div");
+      playPauseBtn.id = "playPauseBtn";
+      playPauseBtn.style.display = "block";
+      playPauseBtn.innerHTML = "Play/Pause";
+      playPauseBtn.style.position = "fixed";
+      playPauseBtn.style.bottom = "10px";
+      playPauseBtn.style.right = "10px";
+      playPauseBtn.style.cursor = "pointer";
+      playPauseBtn.style.padding = "5px 10px";
+      playPauseBtn.style.background = "rgba(0,0,0,0.7)";
+      playPauseBtn.style.color = "white";
+      playPauseBtn.style.borderRadius = "5px";
 
-        videoContainer.appendChild(playPauseBtn)
+      let currentVideo = null;
+      // Function to toggle play/pause for the current video
+      playPauseBtn.addEventListener("click", () => {
+        console.log(currentVideo);
+        if (currentVideo) {
+          if (currentVideo.paused) {
+            currentVideo.play();
+          } else {
+            currentVideo.pause();
+          }
+        }
+      });
+
+      videoContainer.appendChild(playPauseBtn);
 
       //const videos = [];
       async function getVideos(count) {
@@ -269,7 +269,7 @@
           `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${vid.manifest}`,
           true
         );
-        player.preload()
+        player.preload();
 
         console.log("CALLING API/VIEW");
         /**
@@ -310,10 +310,10 @@
         videoContainer.appendChild(video);
         videoContainer.appendChild(likeBtn);
         videoContainer.appendChild(dislikeBtn);
-         // Listen for the 'canplaythrough' event to ensure the video is preloaded
-         video.addEventListener("canplaythrough", () => {
-            // Move the preloaded video to the visible DOM
-            container.appendChild(videoContainer);
+        // Listen for the 'canplaythrough' event to ensure the video is preloaded
+        video.addEventListener("canplaythrough", () => {
+          // Move the preloaded video to the visible DOM
+          container.appendChild(videoContainer);
         });
       }
 
@@ -328,11 +328,11 @@
 
       // Function to load initial and subsequent videos
       let currentPage = 0;
-      let isLoading = false;
+    //   let isLoading = false;
 
       async function loadVideos() {
-        if (isLoading) return;
-        isLoading = true;
+        // if (isLoading) return;
+        // isLoading = true;
 
         const videos = await getVideos(10);
 
@@ -342,31 +342,71 @@
         });
 
         currentPage++;
-        isLoading = false;
+        // isLoading = false;
       }
 
       let cnt = 1;
 
+      // // Intersection Observer to detect the last video
+      // const observer = new IntersectionObserver(
+      //   (entries) => {
+      //     entries.forEach((entry) => {
+      //       const video = entry.target.querySelector("video");
+      //       const videoId = video.dataset.id;
+      //       if (entry.isIntersecting) {
+      //         currentVideo = video; // Set the current video in view
+      //         updateUrl(videoId);
+      //         video.play();
+      //         console.log("Intersection observed for video ID:", videoId);
+
+      //         entry.target.scrollIntoView({
+      //           behavior: "smooth",
+      //           block: "center",
+      //         });
+      //         cnt = cnt + 1;
+      //         // Load more videos if this is the last one
+      //         if (
+      //           entry.target === videoContainer.lastElementChild ||
+      //           cnt % 4 === 0
+      //         ) {
+      //           console.log(`New New request Made`);
+      //           loadVideos();
+      //         }
+      //       } else {
+      //         video.pause();
+      //       }
+      //     });
+      //   },
+      //   { threshold: 0.3, rootMargin: "100px" }
+      // );
       // Intersection Observer to detect the last video
       const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
+        async (entries) => {
+          let count = 1;
+          entries.forEach(async (entry) => {
             const video = entry.target.querySelector("video");
             const videoId = video.dataset.id;
             if (entry.isIntersecting) {
-                currentVideo = video; // Set the current video in view
+              currentVideo = video; // Set the current video in view
               updateUrl(videoId);
               video.play();
               console.log("Intersection observed for video ID:", videoId);
+
               entry.target.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
+                // behavior: "smooth",
+                // block: "center",
               });
-              cnt = cnt + 1;
-              // Load more videos if this is the last one
-              if (entry.target === videoContainer.lastElementChild || cnt % 8 === 0) {
-                loadVideos();
-              }
+
+              count++;
+
+              // Check if this is the last video in the list
+            //   if (
+            //     entry.target === videoContainer.lastElementChild ||
+            //     count % 8 === 0
+            //   ) {
+            //     console.log(`Requesting more videos`);
+            //     await loadVideos();
+            //   }
             } else {
               video.pause();
             }
@@ -387,7 +427,7 @@
             body: JSON.stringify({ videoId }),
           }
         );
-        isLoading = true;
+        // isLoading = true;
         let video = await response.json();
         console.log("Video:", video);
         video = video.video;
@@ -408,23 +448,13 @@
         loadOne("15004793-hd_1920_1080_24fps");
 
         loadOne("7274842-uhd_2160_4096_25fps");
-        loadOne("8088301-uhd_4096_2160_24fps");
-        loadOne("8488698-hd_1920_1080_25fps");
+        // loadOne("8088301-uhd_4096_2160_24fps");
+        // loadOne("8488698-hd_1920_1080_25fps");
 
+        // loadOne("855379-hd_1920_1080_30fps");
+        // loadOne("15004793-hd_1920_1080_24fps");
 
-        loadOne("855379-hd_1920_1080_30fps");
-        loadOne("15004793-hd_1920_1080_24fps");
-        
-        // await loadOne("8088301-uhd_4096_2160_24fps")
-        // await loadOne("8488698-hd_1920_1080_25fps")
-
-        // await loadOne("8488698-hd_1920_1080_25fps")
-        // await loadOne("8088301-uhd_4096_2160_24fps")
-        // await loadOne("6568193-uhd_4096_2160_25fps")
-        // await loadOne("8488698-hd_1920_1080_25fps")
-        // await loadOne("15004793-hd_1920_1080_24fps")
-
-        isLoading = false;
+        // isLoading = false;
         const videos = document.querySelectorAll(".video-wrapper");
         videos.forEach((video) => observer.observe(video));
       }
@@ -449,6 +479,21 @@
           document.querySelectorAll("video").forEach((video) => video.pause());
         }
       });
+
+      let lastRequestTime = 0;
+
+      window.addEventListener("scroll", () => {
+        // console.log("SCROLL:", window.innerHeight + window.scrollY, "vs", document.body.offsetHeight)
+        const currentTime = new Date().getTime();
+        // console.log("TIME:", currentTime - lastRequestTime)
+        // Check if we are near the bottom of the page
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 5000 && (currentTime - lastRequestTime > 2000)) {
+          loadVideos();
+          console.log("GETS IN HERE!!!!!!")
+        
+          lastRequestTime = currentTime;
+        }
+    });
     </script>
   </body>
 </html>
