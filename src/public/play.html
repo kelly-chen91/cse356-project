@@ -1,499 +1,328 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>MPEG-DASH Media Player</title>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-  </head>
-  <style>
-    .container {
-      height: 100vh;
-      overflow-y: scroll;
-      /* scroll-snap-type: y mandatory; */
-      /* scroll-behavior: smooth; */
+</head>
+<style>
+    body {
+        display: flex;
+        height: 100vh;
+        margin: 0;
     }
-    .video-wrapper {
-      /* height: 100vh; */
-      width: 600px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      /* scroll-snap-align: center;
-      scroll-snap-stop: always; */
-      position: relative;
-      padding: 0;
-      margin: 0;
+
+    #playPauseBtn button {
+        width: 120px;
+        padding: 10px;
+        background-color: #8e8e8e;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-bottom: 25px;
     }
-    video {
-      width: 100%;
-      height: 85vh;
-      object-fit: contain;
-      overflow: clip;
-      overflow-clip-margin: content-box;
+
+    #playPauseBtn button:hover {
+        background-color: #a9a9a9;
     }
-  </style>
-  <body>
-    <div id="container"></div>
-    <!-- <script>
-      const container = document.getElementById("container");
 
-      const videos = [];
+    .videoList {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        scroll-snap-type: y mandatory;
+        /* Ensures scroll snapping is active */
+        overflow-y: auto;
+        /* Enable scrolling */
+        height: 100vh;
+        /* Full viewport height */
+        align-items: center;
+        /* Center items horizontally */
+        justify-content: flex-start;
+        /* Start items from the top */
+        scroll-behavior: smooth;
+        /* Smooth transition for scrolling */
+    }
 
-      const count = 10;
+    .videoItem {
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+        /* Snap video to the center */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100vh;
+        /* Make each video take up full height */
+        margin: 0;
+        padding: 0;
+        position: relative;
+    }
 
-      async function updateLike(id, value) {
-        const like = value;
-        const response = await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id, value: value }),
-          }
-        );
-      }
-      async function getVideos() {
-        const response = await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ count }),
-          }
-        );
+    .buttonsContainer {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        padding-left: 20px;
+        padding-top: 20px;
+    }
 
-        if (response.ok) {
-          const videoMetadatas = await response.json();
-          console.log(videoMetadatas);
-          videoMetadatas.videos.forEach((video) => {
-            videos.push(video.id);
-            loadVideo(video.id);
-          });
-        }
+    .likeDislikeBtn {
+        width: 80px;
+        padding: 10px;
+        margin: 5px 0;
+        background-color: #8e8e8e;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+    }
 
-        // console.log(videos)
-      }
+    .likeDislikeBtn.liked {
+        background-color: green;
+    }
 
-      async function loadVideo(id) {
-        var video = document.createElement("video");
-        video.controls = true;
-        video.width = 1280;
+    .likeDislikeBtn.disliked {
+        background-color: red;
+    }
 
-        var videoContainer = document.createElement("div");
+    .likeDislikeBtn:hover {
+        background-color: #a9a9a9;
+    }
 
-        var player = dashjs.MediaPlayer().create();
-        player.initialize(
-          video,
-          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${id}_output.mpd`,
-          true
-        );
+    .likeDislikeBtn.liked:hover {
+        background-color: green;
+        cursor: default;
+    }
 
-        console.log("CALLING API/VIEW");
-        /**
-        @TODO Make API call to /api/view to mark video as viewed
-        */
-        await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/view",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id: id }),
-            // body: id,
-          }
-        );
+    .likeDislikeBtn.disliked:hover {
+        background-color: red;
+        cursor: default;
+    }
+</style>
 
-        const playPauseBtn = document.createElement("div");
-        playPauseBtn.id = "playPauseBtn";
-        playPauseBtn.innerHTML = "Play/Pause";
-
-        playPauseBtn.addEventListener("click", function () {
-          if (video.paused) {
-            video.play();
-          } else {
-            video.pause();
-          }
-        });
-
-        // Like/Dislike button
-        const likeBtn = document.createElement("button");
-        likeBtn.id = "likeBtn";
-        likeBtn.name = "like"
-        likeBtn.innerHTML = "Like";
-        likeBtn.addEventListener("click", async function () {
-          console.log("SENDING LIKES ....");
-          await updateLike(id, true);
-        });
-
-        const dislikeBtn = document.createElement("button");
-        dislikeBtn.id = "dislikeBtn";
-        dislikeBtn.name = "dislike"
-        dislikeBtn.innerHTML = "Dislike";
-        dislikeBtn.addEventListener("click", async function () {
-          console.log("SENDING DISLIKES ....");
-
-          await updateLike(id, false);
-        });
-
-        videoContainer.appendChild(video);
-        videoContainer.appendChild(playPauseBtn);
-        videoContainer.appendChild(likeBtn);
-        videoContainer.appendChild(dislikeBtn);
-        // videoContainer.appendChild(seekBtn);
-        // videoContainer.appendChild(resolutionSelect);
-        container.appendChild(videoContainer);
-      }
-
-      window.onload = function () {
-        const tempVideos = ['5889739-uhd_2160_3840_25fps', '4194963-hd_1920_1080_24fps', '3769952-hd_1920_1080_25fps', '3249808-uhd_3840_2160_25fps']
-        const id = window.location.pathname.split("/")[2];
-        videos.push(id);
-
-        loadVideo(id);
-        tempVideos.forEach((videoId) => {
-            videos.push(videoId)
-            loadVideo(videoId);
-          });
-        // getVideos();
-      };
-
-      window.addEventListener("scroll", () => {
-        // Check if we are near the bottom of the page
-        if (
-          window.innerHeight + window.scrollY >=
-          document.body.offsetHeight - 100
-        ) {
-        //   getVideos();
-        } else {
-          // Calculate the index of the video based on the scroll position
-          const videoIndex = Math.floor(window.scrollY / 120) % videos.length;
-
-          // Update the URL for the current video
-          window.history.replaceState(
-            null,
-            null,
-            `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videos[videoIndex]}`
-          );
-
-          // Find the next video section element
-          const nextVideoSection = document.getElementById(
-            `video${videoIndex + 1}`
-          ); // Assumes video IDs are in the format 'video1', 'video2', etc.
-
-          // Check if the next video section exists
-          if (nextVideoSection) {
-            // Scroll to the next video section smoothly
-            nextVideoSection.scrollIntoView({ behavior: "smooth" });
-          }
-        }
-      });
-    </script> -->
+<body>
+    <div id="playPauseBtn">
+        <button>Play/Pause</button>
+    </div>
+    <div id="videoList"></div>
     <script>
-      const videoContainer = document.getElementById("container");
+        const videoList = document.getElementById("videoList");
+        const playPauseBtn = document.getElementById("playPauseBtn");
 
-      // Create a single global play/pause button
-      const playPauseBtn = document.createElement("div");
-      playPauseBtn.id = "playPauseBtn";
-      playPauseBtn.style.display = "block";
-      playPauseBtn.innerHTML = "Play/Pause";
-      playPauseBtn.style.position = "fixed";
-      playPauseBtn.style.bottom = "10px";
-      playPauseBtn.style.right = "10px";
-      playPauseBtn.style.cursor = "pointer";
-      playPauseBtn.style.padding = "5px 10px";
-      playPauseBtn.style.background = "rgba(0,0,0,0.7)";
-      playPauseBtn.style.color = "white";
-      playPauseBtn.style.borderRadius = "5px";
+        let watchHistory = [];
+        let historyIndex = 0;
 
-      let currentVideo = null;
-      // Function to toggle play/pause for the current video
-      playPauseBtn.addEventListener("click", () => {
-        console.log(currentVideo);
-        if (currentVideo) {
-          if (currentVideo.paused) {
-            currentVideo.play();
-          } else {
-            currentVideo.pause();
-          }
+        let currentVideoId = window.location.pathname.split("/")[2];
+        let currentPlayer = null;
+
+        function observeVideo(videoElement, player) {
+            const observer = new IntersectionObserver(
+                (entries, observer) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const video = entry.target;
+                            const videoId = entry.target.id;
+
+                            video
+                                .play()
+                                .catch((err) => console.log("autoplay failed: ", err));
+
+                            currentPlayer = player;
+
+                            entry.target.scrollIntoView({
+                                behavior: "smooth",
+                                block: "center",
+                            });
+
+                            fetch("api/view", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ id: videoId }),
+                            })
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    console.log(
+                                        `Video ${videoId} already viewed? : ${data.viewed}`
+                                    );
+                                })
+                                .catch((error) =>
+                                    console.error(`Error updating viewed on ${videoId}`)
+                                );
+                        } else {
+                            const video = entry.target;
+                            video.pause();
+                        }
+                    });
+                },
+                {
+                    threshold: 0.3,
+                }
+            );
+            observer.observe(videoElement, player);
         }
-      });
 
-      videoContainer.appendChild(playPauseBtn);
+        function createVideoDivs(videoId) {
+            const videoItem = document.createElement("div");
+            videoItem.classList.add("videoItem");
 
-      //const videos = [];
-      async function getVideos(count) {
-        const videos = [];
-        const response = await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ count }),
-          }
-        );
+            const videoElement = document.createElement("video");
+            videoElement.setAttribute("controls", true);
+            videoElement.style.width = "100%";
+            videoElement.id = `${videoId}`;
 
-        if (response.ok) {
-          const videoMetadatas = await response.json();
-          console.log(videoMetadatas);
-          videoMetadatas.videos.forEach((video) => {
-            videos.push(video);
-            loadVideo(video);
-          });
+            const buttonsContainer = document.createElement("div");
+            buttonsContainer.classList.add("buttonsContainer");
+
+            const likeBtn = document.createElement("button");
+            likeBtn.classList.add("likeDislikeBtn");
+            likeBtn.innerHTML = "Like";
+            likeBtn.name = "like";
+            
+            const dislikeBtn = document.createElement("button");
+            dislikeBtn.classList.add("likeDislikeBtn");
+            dislikeBtn.innerHTML = "Dislike";
+            dislikeBtn.name = "dislike";
+
+            likeBtn.addEventListener("click", () => {
+                fetch(
+                    "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ id: videoId, value: true }),
+                    }
+                ).catch((error) =>
+                    console.error(`Error updating like on video ${videoId}: ${error}`)
+                );
+            });
+
+            dislikeBtn.addEventListener("click", () => {
+                fetch(
+                    "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ id: videoId, value: false }),
+                    }
+                )
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(`Video ${videoId} now has ${data.likes}`);
+                    })
+                    .catch((error) =>
+                        console.error(
+                            `Error updating dislike on video ${videoId}: ${error}`
+                        )
+                    );
+            });
+
+            buttonsContainer.appendChild(likeBtn);
+            buttonsContainer.appendChild(dislikeBtn);
+
+            videoItem.appendChild(videoElement);
+            videoItem.appendChild(buttonsContainer);
+
+            videoList.appendChild(videoItem);
+
+            const manifestUrl = `/api/manifest/${videoId}_output.mpd`;
+            const player = dashjs.MediaPlayer().create();
+            player.initialize(videoElement, manifestUrl, false);
+
+            watchHistory.push({ videoId: videoId, player: player });
         }
-        // console.log(videos)
-        return videos;
-      }
 
-      async function loadVideo(vid) {
-        console.log(`Loading Video ${vid}`);
-        var video = document.createElement("video");
-        video.controls = true;
-        video.dataset.id = vid.id;
-        video.src = `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${vid.manifest}`;
-        // video.preload = "auto"; // Set preload behavior
-        // video.load(); // Start preloading the video
+        function preloadVideos(count) {
+            fetch("/api/videos", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ count: count }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    data.videos.sort((a, b) => a.id - b.id);
 
-        var videoContainer = document.createElement("div");
-        videoContainer.className = "video-wrapper";
+                    data.videos.forEach((video) => {
+                        createVideoDivs(video.id);
+                    });
+                })
+                .catch((error) =>
+                    console.error(`Error getting recommended videos: ${error}`)
+                );
+        }
 
-        var player = dashjs.MediaPlayer().create();
-        player.initialize(
-          video,
-          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/manifest/${vid.manifest}`,
-          true
-        );
-        player.preload();
-
-        console.log("CALLING API/VIEW");
-        /**
-          @TODO Make API call to /api/view to mark video as viewed
-          */
-        await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/view",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id: vid.id }),
-            // body: id,
-          }
-        );
-
-        // Like/Dislike button
-        const likeBtn = document.createElement("button");
-        likeBtn.id = "likeBtn";
-        likeBtn.name = "like";
-        likeBtn.innerHTML = "Like";
-        likeBtn.addEventListener("click", async function () {
-          console.log("SENDING LIKES ....");
-          await updateLike(vid.id, true);
-        });
-
-        const dislikeBtn = document.createElement("button");
-        dislikeBtn.id = "dislikeBtn";
-        dislikeBtn.name = "dislike";
-        dislikeBtn.innerHTML = "Dislike";
-        dislikeBtn.addEventListener("click", async function () {
-          console.log("SENDING DISLIKES ....");
-
-          await updateLike(vid.id, false);
-        });
-
-        videoContainer.appendChild(video);
-        videoContainer.appendChild(likeBtn);
-        videoContainer.appendChild(dislikeBtn);
-        // Listen for the 'canplaythrough' event to ensure the video is preloaded
-        video.addEventListener("canplaythrough", () => {
-          // Move the preloaded video to the visible DOM
-          container.appendChild(videoContainer);
-        });
-      }
-
-      // Function to handle URL update
-      function updateUrl(videoId) {
-        window.history.replaceState(
-          null,
-          null,
-          `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videoId}`
-        );
-      }
-
-      // Function to load initial and subsequent videos
-      let currentPage = 0;
-    //   let isLoading = false;
-
-      async function loadVideos() {
-        // if (isLoading) return;
-        // isLoading = true;
-
-        const videos = await getVideos(10);
-
-        console.table("VIDEOS ", videos);
-        videos.forEach(async (video) => {
-          if (video.id !== undefined) loadVideo(video);
-        });
-
-        currentPage++;
-        // isLoading = false;
-      }
-
-      let cnt = 1;
-
-      // // Intersection Observer to detect the last video
-      // const observer = new IntersectionObserver(
-      //   (entries) => {
-      //     entries.forEach((entry) => {
-      //       const video = entry.target.querySelector("video");
-      //       const videoId = video.dataset.id;
-      //       if (entry.isIntersecting) {
-      //         currentVideo = video; // Set the current video in view
-      //         updateUrl(videoId);
-      //         video.play();
-      //         console.log("Intersection observed for video ID:", videoId);
-
-      //         entry.target.scrollIntoView({
-      //           behavior: "smooth",
-      //           block: "center",
-      //         });
-      //         cnt = cnt + 1;
-      //         // Load more videos if this is the last one
-      //         if (
-      //           entry.target === videoContainer.lastElementChild ||
-      //           cnt % 4 === 0
-      //         ) {
-      //           console.log(`New New request Made`);
-      //           loadVideos();
-      //         }
-      //       } else {
-      //         video.pause();
-      //       }
-      //     });
-      //   },
-      //   { threshold: 0.3, rootMargin: "100px" }
-      // );
-      // Intersection Observer to detect the last video
-      const observer = new IntersectionObserver(
-        async (entries) => {
-          let count = 1;
-          entries.forEach(async (entry) => {
-            const video = entry.target.querySelector("video");
-            const videoId = video.dataset.id;
-            if (entry.isIntersecting) {
-              currentVideo = video; // Set the current video in view
-              updateUrl(videoId);
-              video.play();
-              console.log("Intersection observed for video ID:", videoId);
-
-              entry.target.scrollIntoView({
-                // behavior: "smooth",
-                // block: "center",
-              });
-
-              count++;
-
-              // Check if this is the last video in the list
-            //   if (
-            //     entry.target === videoContainer.lastElementChild ||
-            //     count % 8 === 0
-            //   ) {
-            //     console.log(`Requesting more videos`);
-            //     await loadVideos();
-            //   }
-            } else {
-              video.pause();
+        // Function to toggle play/pause for the current video
+        playPauseBtn.addEventListener("click", () => {
+            if (currentPlayer) {
+                if (currentPlayer.isPaused()) {
+                    currentPlayer.play();
+                } else {
+                    currentPlayer.pause();
+                }
             }
-          });
-        },
-        { threshold: 0.3, rootMargin: "100px" }
-      );
-
-      async function loadOne(videoId) {
-        console.log("Load one:", videoId);
-        let response = await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/one-video",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ videoId }),
-          }
-        );
-        // isLoading = true;
-        let video = await response.json();
-        console.log("Video:", video);
-        video = video.video;
-        console.table("initializing video: ", video);
-        loadVideo(video);
-      }
-
-      // Initialize the infinite scroll
-      async function initialize() {
-        const id = window.location.pathname.split("/")[2];
-
-        console.log("LOADING FIRST VIDEO");
-
-        loadVideos(); // Load initial set of videos
-        await loadOne(id);
-        loadOne("7998251-hd_1080_1920_24fps");
-        loadOne("6252812-uhd_2560_1440_30fps");
-        loadOne("15004793-hd_1920_1080_24fps");
-
-        loadOne("7274842-uhd_2160_4096_25fps");
-        // loadOne("8088301-uhd_4096_2160_24fps");
-        // loadOne("8488698-hd_1920_1080_25fps");
-
-        // loadOne("855379-hd_1920_1080_30fps");
-        // loadOne("15004793-hd_1920_1080_24fps");
-
-        // isLoading = false;
-        const videos = document.querySelectorAll(".video-wrapper");
-        videos.forEach((video) => observer.observe(video));
-      }
-
-      // Observe new videos as they are added
-      const mutationObserver = new MutationObserver(() => {
-        const newVideos = document.querySelectorAll(
-          ".video-wrapper:not([data-observed])"
-        );
-        newVideos.forEach((video) => {
-          observer.observe(video);
-          video.setAttribute("data-observed", "true");
         });
-      });
 
-      mutationObserver.observe(videoContainer, { childList: true });
+        let scrollTimeout = null;
+        const debounceDuration = 750;
 
-      initialize();
+        window.addEventListener("wheel", async (event) => {
+            if (scrollTimeout) return;
 
-      document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-          document.querySelectorAll("video").forEach((video) => video.pause());
-        }
-      });
+            scrollTimeout = setTimeout(() => {
+                scrollTimeout = null;
+            }, debounceDuration);
 
-      let lastRequestTime = 0;
+            if (event.deltaY < 0) {
+                //Scroll up
+                if (historyIndex > 0) {
+                    historyIndex--;
+                }
+            } else {
+                historyIndex++;
+            }
 
-      window.addEventListener("scroll", () => {
-        // console.log("SCROLL:", window.innerHeight + window.scrollY, "vs", document.body.offsetHeight)
-        const currentTime = new Date().getTime();
-        // console.log("TIME:", currentTime - lastRequestTime)
-        // Check if we are near the bottom of the page
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 5000 && (currentTime - lastRequestTime > 2000)) {
-          loadVideos();
-          console.log("GETS IN HERE!!!!!!")
-        
-          lastRequestTime = currentTime;
-        }
-    });
+            history.pushState(
+                null,
+                "",
+                `/play/${watchHistory[historyIndex].videoId}`
+            );
+
+            const videoElement = document.getElementById(
+                watchHistory[historyIndex].videoId
+            );
+
+            if (videoElement) {
+                currentPlayer = watchHistory[historyIndex].player;
+
+                videoElement
+                    .play()
+                    .catch((err) => console.log("Autoplay failed: ", err));
+            }
+
+            if (historyIndex === watchHistory.length - 5) {
+                preloadVideos(8);
+            }
+        });
+
+        // Load initial Video
+        createVideoDivs(currentVideoId);
+        currentPlayer = watchHistory[0].player;
+
+        preloadVideos(10);
+
+        //
     </script>
-  </body>
+</body>
+
 </html>

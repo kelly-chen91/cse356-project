@@ -286,7 +286,7 @@ router
         for (const videoId of otherLikes) {
           if (!user.watched.includes(videoId)) {
             // Only add if not already watched
-            // recommendedVideos.add(videoMap[videoId]);
+            recommendedVideos.add(videoMap[videoId]);
             if (recommendedVideos.size >= count) break;
           }
         }
@@ -336,7 +336,7 @@ router
           ? false
           : null,
         likevalues: video.likes,
-        manifest: video.manifest,
+        // manifest: video.manifest,
       };
     });
 
@@ -387,6 +387,7 @@ router
     // Check if user is currently logged in
     const uid = req.session.userId;
     if (!uid) {
+      console.log("User not logged in");
       return res.status(200).json({
         status: "ERROR",
         error: true,
@@ -395,106 +396,55 @@ router
     }
 
     // Update video information.
-    const { vid, value } = req.body;
-    console.log("Video id:", vid);
+    const { id, value } = req.body;
 
-    const likeValue = value == true ? 1 : value == false ? -1 : 0;
+    try {
+      const user = await User.findById(uid);
+      const video = await Video.findOne({ videoId: id });
+      console.log("Video likes Previous:", video.likes);
 
-    const user = await User.findById(uid).exec();
-    // console.log("USER ===", user);
-    // .populate("liked")
-    // .populate("disliked");
+      const liked = user.liked.includes(id);
+      const disliked = user.disliked.includes(id);
 
-    const temp = await Video.findOne({ vid });
-    // console.log("VIDEO OBJ ID: ", temp._id);
-    // Check if user has liked/disliked vid before
-    const foundInLiked = user.liked.includes(temp._id);
-    const foundInDisliked = !foundInLiked
-      ? user.disliked.includes(temp._id)
-      : null;
+      if ((value && liked) || (!value && disliked)) {
+        console.log("The value that you want to set is the same");
+        return res.status(200).json({
+          status: "ERROR",
+          error: true,
+          message: "The value that you want to set is the same",
+        });
+      }
 
-    // If user has liked/disliked the video previously and the new value has not changed the previous value, send error
-    console.log("/api/like Found In Liked: ", foundInLiked);
-    console.log("/api/like Found In Disliked: ", foundInDisliked);
-    console.log("/api/like Value: ", value);
-    console.log("/api/like LikedValue: ", likeValue);
+      if (value) {
+        if (disliked) {
+          user.disliked.pull(id);
+          video.dislikedBy.pull(user._id);
+        }
+        user.liked.push(id);
+        video.likes += 1;
+      } else {
+        if (liked) {
+          user.liked.pull(id);
+          video.likes -= 1;
+        }
+        user.disliked.push(id);
+        // video.dislike
+      }
 
-    if (
-      (foundInLiked && likeValue == 1) ||
-      (foundInDisliked && likeValue == -1)
-    ) {
-      console.log("Already liked/disliked video before....");
-      return res.status(200).json({
+      console.log("Video likes after:", video.likes);
+
+      await user.save();
+      await video.save();
+
+      res.status(200).json({ status: "OK", likes: video.likes });
+    } catch (error) {
+      console.log(error);
+      res.status(200).json({
         status: "ERROR",
         error: true,
-        message: "Cannot set the same like value as previous.",
+        message: "An error occurred while updating like status",
       });
     }
-    // if (value) {
-    const video = await Video.findOneAndUpdate(
-      { vid },
-      { $inc: { likes: likeValue } }
-    );
-
-    console.log("Incremented likes to ", video.likes);
-    // const video = await Video.findOne({ vid }).exec();
-    // .populate("likedBy")
-    // .populate("dislikedBy");
-    // console.log("/api/like VIDEO: ", video);
-    if (likeValue === 1) {
-      // video.likedBy.push(user._id);
-      // user.liked.push(video._id);
-      // await video.save();
-      // await user.save();
-      const newVid = await Video.findOneAndUpdate(
-        { vid },
-        { $push: { likedBy: uid } },
-        { new: true }
-      );
-      console.log("api/like video: ", newVid.likedBy);
-      console.log("api/like videoId: ", newVid._id);
-
-      const newUser = await User.findOneAndUpdate(
-        { _id: uid },
-        { $push: { liked: newVid._id } },
-        { new: true }
-      );
-
-      console.log("api/like user: ", newUser.liked);
-
-      return res
-        .status(200)
-        .json({ status: "OK", message: { likes: newVid.likes } });
-    } else if (likeValue === -1) {
-      // video.dislikedBy.push(user._id);
-      // user.disliked.push(video._id);
-      // await video.save();
-      // await user.save();
-
-      const newVid = await Video.findOneAndUpdate(
-        { vid },
-        { $push: { dislikedBy: uid } },
-        { new: true }
-      );
-      console.log("api/like video: ", newVid.dislikedBy);
-
-      const newUser = await User.findOneAndUpdate(
-        { _id: uid },
-        { $push: { disliked: newVid._id } },
-        { new: true }
-      );
-      console.log("api/like user: ", newUser.disliked);
-
-      return res
-        .status(200)
-        .json({ status: "OK", message: { likes: newVid.likes } });
-    }
-
-    // console.log("api/like video: ", video);
-    // console.log("api/like user: ", user);
-    return res
-      .status(200)
-      .json({ status: "OK", message: { likes: video.likes } });
   })
   .post("/api/upload", upload.single("mp4File"), async (req, res) => {
     console.log("Reached api/upload");
@@ -541,9 +491,9 @@ router
 
     async () => {
       // FFmpeg command to pad the video to 1280x720 with black bars
-      const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoName}" -y -loglevel error`;
+      const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoName}" -y`;
 
-      const thumbnailCommand = `ffmpeg -i "padded_videos/${videoName}" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoName}_thumbnail.jpg" -y  -loglevel error`;
+      const thumbnailCommand = `ffmpeg -i "padded_videos/${videoName}" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoName}_thumbnail.jpg" -y`;
 
       const manifestCommand = `
         ffmpeg -i "padded_videos/${videoName}" \
@@ -560,7 +510,6 @@ router
             -media_seg_name "${videoName}_chunk_$RepresentationID$_$Number$.m4s" \
             -adaptation_sets "id=0,streams=v" \
             "media/${videoName}_output.mpd"
-            -loglevel error
         `;
 
       // Helper function to execute commands and return a Promise
@@ -679,10 +628,10 @@ router
     const foundVideo = user.watched.includes(targetVid.videoId);
     let previouslyWatched = false;
     if (foundVideo) {
-      console.log(`User ${user.username} already viewed ${id}`);
+      // console.log(`User ${user.username} already viewed ${id}`);
       previouslyWatched = true;
     } else {
-      console.log(`User ${user.username} has not viewed ${id}`);
+      // console.log(`User ${user.username} has not viewed ${id}`);
       user.watched.push(id);
       await user.save();
     }
