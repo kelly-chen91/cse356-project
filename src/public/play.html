@@ -12,9 +12,9 @@
 
       const videos = [];
 
-      const count = 1;
+      const count = 10;
 
-      async function updateLike(value) {
+      async function updateLike(id, value) {
         const like = value;
         const response = await fetch(
           "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
@@ -23,7 +23,7 @@
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ id, like }),
+            body: JSON.stringify({ id, value: value }),
           }
         );
       }
@@ -65,6 +65,22 @@
           true
         );
 
+        console.log("CALLING API/VIEW");
+        /**
+        @TODO Make API call to /api/view to mark video as viewed
+        */
+        await fetch(
+          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/view",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id: id }),
+            // body: id,
+          }
+        );
+
         const playPauseBtn = document.createElement("div");
         playPauseBtn.id = "playPauseBtn";
         playPauseBtn.innerHTML = "Play/Pause";
@@ -77,50 +93,28 @@
           }
         });
 
-        const checkFeedback = await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/check-feedback",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ vid }),
-          }
-        );
-
         // Like/Dislike button
         const likeBtn = document.createElement("button");
         likeBtn.id = "likeBtn";
         likeBtn.innerHTML = "Like";
-        likeBtn.disabled = checkFeedback == true ? true : false;
         likeBtn.addEventListener("click", async function () {
-          await updateLike(true);
+          console.log("SENDING LIKES ....");
+          await updateLike(id, true);
         });
 
         const dislikeBtn = document.createElement("button");
         dislikeBtn.id = "dislikeBtn";
         dislikeBtn.innerHTML = "Dislike";
-        dislikeBtn.disabled = checkFeedback == false ? true : false;
         dislikeBtn.addEventListener("click", async function () {
-          await updateLike(false);
-        });
+          console.log("SENDING DISLIKES ....");
 
-        /**
-        @TODO Make API call to /api/view to mark video as viewed
-        */
-        await fetch(
-          "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/view",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ vid }),
-          }
-        );
+          await updateLike(id, false);
+        });
 
         videoContainer.appendChild(video);
         videoContainer.appendChild(playPauseBtn);
+        videoContainer.appendChild(likeBtn);
+        videoContainer.appendChild(dislikeBtn);
         // videoContainer.appendChild(seekBtn);
         // videoContainer.appendChild(resolutionSelect);
         container.appendChild(videoContainer);
@@ -129,41 +123,41 @@
       window.onload = function () {
         const id = window.location.pathname.split("/")[2];
         videos.push(id);
-        loadVideo(id);
 
+        loadVideo(id);
         getVideos();
       };
 
-      window.addEventListener("scroll", () => {
-        // Check if we are near the bottom of the page
-        if (
-          window.innerHeight + window.scrollY >=
-          document.body.offsetHeight - 100
-        ) {
-          getVideos();
-        } else {
-          // Calculate the index of the video based on the scroll position
-          const videoIndex = Math.floor(window.scrollY / 120) % videos.length;
+    //   window.addEventListener("scroll", () => {
+    //     // Check if we are near the bottom of the page
+    //     if (
+    //       window.innerHeight + window.scrollY >=
+    //       document.body.offsetHeight - 100
+    //     ) {
+    //       getVideos();
+    //     } else {
+    //       // Calculate the index of the video based on the scroll position
+    //       const videoIndex = Math.floor(window.scrollY / 120) % videos.length;
 
-          // Update the URL for the current video
-          window.history.replaceState(
-            null,
-            null,
-            `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videos[videoIndex]}`
-          );
+    //       // Update the URL for the current video
+    //       window.history.replaceState(
+    //         null,
+    //         null,
+    //         `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${videos[videoIndex]}`
+    //       );
 
-          // Find the next video section element
-          const nextVideoSection = document.getElementById(
-            `video${videoIndex + 1}`
-          ); // Assumes video IDs are in the format 'video1', 'video2', etc.
+    //       // Find the next video section element
+    //       const nextVideoSection = document.getElementById(
+    //         `video${videoIndex + 1}`
+    //       ); // Assumes video IDs are in the format 'video1', 'video2', etc.
 
-          // Check if the next video section exists
-          if (nextVideoSection) {
-            // Scroll to the next video section smoothly
-            nextVideoSection.scrollIntoView({ behavior: "smooth" });
-          }
-        }
-      });
+    //       // Check if the next video section exists
+    //       if (nextVideoSection) {
+    //         // Scroll to the next video section smoothly
+    //         nextVideoSection.scrollIntoView({ behavior: "smooth" });
+    //       }
+    //     }
+    //   });
     </script>
   </body>
 </html>

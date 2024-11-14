@@ -17,7 +17,13 @@ var VideoSchema = new Schema({
   manifest: {
     type: String,
     default: function () {
-      return `${this._id}/${this._id}_output.mpd`;
+      return `${this._id}_output.mpd`;
+    },
+  },
+  thumbnail: {
+    type: String,
+    default: function () {
+      return `${this._id}_thumbnail.jpg`;
     },
   },
   status: { type: String, enum: ["processing", "complete"], required: true },

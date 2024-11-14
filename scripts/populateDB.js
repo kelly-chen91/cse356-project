@@ -27,7 +27,8 @@ mongoose
         videoId: title,
         title: title,
         description: jsonData[key],
-        manifest: `${title}/${title}_output.mpd`,
+        manifest: `${title}_output.mpd`,
+        thumbnail: `${title}_thumbnail.jpg`,
         status: "complete",
       });
       await newVideo.save();
