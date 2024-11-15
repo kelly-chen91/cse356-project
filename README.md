@@ -13,7 +13,7 @@ Run the following to set up and download all dependencies.
 ## Start the service
 
 ```
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 **For monitoring server backend**
@@ -45,16 +45,8 @@ docker logs node -f
    ./manifest.sh
    ```
 
-## Gorse (Recommendation System)
-
-After performing `docker-compose up -d`, you can access to Gorse dashboard via `localhost:8088`.
-
-Please view [this documentation](https://gorse.io/docs/master/quick-start.html) to see the available API endpoints to implement collaborative filtering
-
-Note: From Zhen: remember to check out zhenghaoz (the goat)'s wechat :wink:
-
 ## Populate Initial Videos
 
-To populate the database with JSON data, first cd back to `cse356-project` and then do `node scripts/populateDB.js`
+To populate the database with JSON data, first cd back to `cse356-project/scripts` and then do `node populateDB.js`
 
 You can change the json file you want to populate in `.env` file.
