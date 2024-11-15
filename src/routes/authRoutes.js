@@ -489,14 +489,14 @@ router
 
     res.status(200).json({ status: "OK", id: videoId });
 
-    async () => {
-      // FFmpeg command to pad the video to 1280x720 with black bars
-      const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoName}" -y`;
+    // async () => {
+    // FFmpeg command to pad the video to 1280x720 with black bars
+    const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoId}.mp4" -y`;
 
-      const thumbnailCommand = `ffmpeg -i "padded_videos/${videoName}" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoName}_thumbnail.jpg" -y`;
+    const thumbnailCommand = `ffmpeg -i "padded_videos/${videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoId}_thumbnail.jpg" -y`;
 
-      const manifestCommand = `
-        ffmpeg -i "padded_videos/${videoName}" \
+    const manifestCommand = `
+        ffmpeg -i "padded_videos/${videoId}.mp4" \
             -map 0:v -b:v:0 254k -s:v:0 320x180 \
             -map 0:v -b:v:1 507k -s:v:1 320x180 \
             -map 0:v -b:v:2 759k -s:v:2 480x270 \
@@ -506,44 +506,43 @@ router
             -map 0:v -b:v:6 3134k -s:v:6 1024x576 \
             -map 0:v -b:v:7 4952k -s:v:7 1280x720 \
             -f dash -seg_duration 10 -use_template 1 -use_timeline 1 \
-            -init_seg_name "${videoName}_chunk_init_$RepresentationID$.m4s" \
-            -media_seg_name "${videoName}_chunk_$RepresentationID$_$Number$.m4s" \
+            -init_seg_name "${videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
+            -media_seg_name "${videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
             -adaptation_sets "id=0,streams=v" \
-            "media/${videoName}_output.mpd"
+            "media/${videoId}_output.mpd"
         `;
 
-      // Helper function to execute commands and return a Promise
-      const execPromise = (command) => {
-        return new Promise((resolve, reject) => {
-          exec(command, (error, stdout, stderr) => {
-            if (error) {
-              reject(`Error: ${error.message}`);
-            }
-            if (stderr) {
-              console.error(`stderr: ${stderr}`);
-            }
-            resolve(stdout); // Resolve when the command completes successfully
-          });
+    // Helper function to execute commands and return a Promise
+    const execPromise = (command) => {
+      return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            reject(`Error: ${error.message}`);
+          }
+          if (stderr) {
+            console.error(`stderr: ${stderr}`);
+          }
+          resolve(stdout); // Resolve when the command completes successfully
         });
-      };
-
-      // Execute the padding command first
-      console.log("Executing padding command...");
-      await execPromise(padCommand);
-
-      // After padding completes, create the thumbnail
-      console.log("Creating thumbnail now...");
-      await execPromise(thumbnailCommand);
-
-      // After thumbnail creation, execute the manifest command
-      console.log("Creating chunk and mpd...");
-      await execPromise(manifestCommand);
-
-      newVideo.status = "complete";
-      await newVideo.save();
-
-      console.log("All commands executed successfully!");
+      });
     };
+
+    // Execute the padding command first
+    console.log(`Executing padding command... video name=${videoName}`);
+    await execPromise(padCommand);
+
+    // After padding completes, create the thumbnail
+    console.log("Creating thumbnail now...");
+    await execPromise(thumbnailCommand);
+
+    // After thumbnail creation, execute the manifest command
+    console.log("Creating chunk and mpd...");
+    await execPromise(manifestCommand);
+
+    newVideo.status = "complete";
+    await newVideo.save();
+
+    console.log("All commands executed successfully!");
   })
   .get("/api/processing-status", async (req, res) => {
     console.log("Reached api/processing-status");
