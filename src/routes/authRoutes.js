@@ -455,7 +455,7 @@ router
         .json({ status: "ERROR", error: true, message: "User not logged in" });
     }
 
-    const { author, title , description} = req.body;
+    const { author, title, description } = req.body;
     const mp4File = req.file;
     // console.log("body:", req.body);
     // console.log("mp4File:", mp4File);
@@ -566,44 +566,6 @@ router
       return res.status(200).json({ status: "OK", videos: videoStatus });
     }
   })
-  // This route checks for whether the specific user likes the video
-  .post("/api/check-feedback", async (req, res) => {
-    const uid = req.session.userId;
-    if (!uid) {
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-    }
-    const { vid } = req.body;
-    const user = await User.findById(uid)
-      .populate("liked")
-      .populate("disliked");
-
-    const foundInLiked = user.liked.find((video) => video.videoId === vid);
-    const foundInDisliked = user.disliked.find(
-      (video) => video.videoId === vid
-    );
-
-    const result = foundInLiked ? true : foundInDisliked ? false : null;
-
-    // const feedbacks = client.getUserFeedback(uid);
-
-    // const foundFeedback = feedbacks.filter(
-    //   (feedback) => feedback.itemId === vid
-    // );
-    // if (foundFeedback) {
-    //   console.table(foundFeedback);
-    //   const feedbackType = foundFeedback.feedbackType;
-    //   const result =
-    //     feedbackType === "like"
-    //       ? true
-    //       : feedbackType === "read" && feedbackType !== "star"
-    //       ? false
-    //       : null;
-
-    res.status(200).json({ status: "OK", message: { feedback: result } });
-    // }
-  })
   .post("/api/view", async (req, res) => {
     console.log("Reached /api/view...");
     const uid = req.session.userId;
@@ -635,35 +597,6 @@ router
       await user.save();
     }
     return res.status(200).json({ status: "OK", viewed: previouslyWatched });
-  })
-  .post("/api/one-video", async (req, res) => {
-    console.log("Reached /api/one-video...");
-    const uid = req.session.userId;
-    if (!uid)
-      return res
-        .status(200)
-        .json({ status: "ERROR", error: true, message: "User not logged in" });
-
-    const videoId = req.body;
-    const video = await Video.findOne(videoId).exec();
-    const user = await User.findById(uid);
-    console.log("/api/one-video video:", video);
-    const id = video._id;
-
-    const newVideo = {
-      id: video.videoId,
-      description: video.description || "",
-      title: video.title || "",
-      watched: user.watched.includes(id),
-      liked: user.liked.includes(id)
-        ? true
-        : user.disliked.includes(id)
-        ? false
-        : null,
-      likevalues: video.likes,
-      manifest: video.manifest,
-    };
-    return res.status(200).json({ status: "OK", video: newVideo });
   });
 
 export default router;
