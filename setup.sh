@@ -28,3 +28,9 @@ sudo apt install -y redis-tools
 # Note that iptables commands are not automatically saved on server restart.
 ip6tables -I OUTPUT -p tcp -m tcp --dport 25 -j DROP
 iptables -t nat -I OUTPUT -o ens3 -p tcp -m tcp --dport 25 -j DNAT --to-destination 130.245.136.123:11587
+
+# Mount Volume to Image
+mkdir /mnt/media
+mount /dev/vdb /mnt/media
+
+
