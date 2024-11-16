@@ -15,7 +15,21 @@
           placeholder="Enter Video Title"
           required
         />
-        <input type="text" name="author" id="author" placeholder="Enter Author" required />
+        <input
+          type="text"
+          name="author"
+          id="author"
+          placeholder="Enter Author"
+          required
+        />
+        <input
+          type="text"
+          name="description"
+          id="description"
+          placeholder="Enter description"
+          required
+        />
+
         <input
           type="file"
           name="mp4File"
@@ -37,22 +51,21 @@
           console.log("UPLOAD VIDEO ACTIVATED");
           const title = document.getElementById("title");
           const author = document.getElementById("author");
+          const description = document.getElementById("description");
           const mp4File = document.getElementById("mp4File");
           const form = document.getElementById("uploadForm");
           const formData = new FormData();
           formData.append("title", title.value);
           formData.append("author", author.value);
+          formData.append("description", description.value);
           formData.append("mp4File", mp4File.files[0]);
-        //   console.log("formData:", [...formData]);
+          //   console.log("formData:", [...formData]);
 
           try {
-            const response = await fetch(
-              "/api/upload",
-              {
-                method: "POST",
-                body: formData,
-              }
-            );
+            const response = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
 
             const data = await response.json();
             console.log(data);

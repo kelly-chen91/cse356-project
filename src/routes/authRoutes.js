@@ -455,12 +455,12 @@ router
         .json({ status: "ERROR", error: true, message: "User not logged in" });
     }
 
-    const { author, title } = req.body;
+    const { author, title , description} = req.body;
     const mp4File = req.file;
     // console.log("body:", req.body);
     // console.log("mp4File:", mp4File);
 
-    if (!author || !title || !mp4File) {
+    if (!author || !title || !description || !mp4File) {
       return res.status(400).json({
         status: "ERROR",
         error: true,
@@ -473,7 +473,7 @@ router
     const newVideo = new Video({
       author: author,
       title: title,
-      description: "random",
+      description: description,
       status: "processing",
       manifest: `${videoName}_output.mpd`,
       thumbnail: `${videoName}_thumbnail.jpg`,
