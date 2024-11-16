@@ -50,3 +50,7 @@ docker logs node -f
 To populate the database with JSON data, first cd back to `cse356-project/scripts` and then do `node populateDB.js`
 
 You can change the json file you want to populate in `.env` file.
+
+## Nginx Certbot
+
+Look at the [documentation](https://github.com/JonasAlfredsson/docker-nginx-certbot/tree/master) to set up Nginx with Certbot.
