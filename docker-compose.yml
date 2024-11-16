@@ -43,8 +43,8 @@ services:
   nginx:
     image: jonasal/nginx-certbot:latest
     restart: unless-stopped
-    environment:
-      - CERTBOT_EMAIL
+    # environment:
+    #   - CERTBOT_EMAIL=kelly.chen.6@stonybrook.edu
     env_file:
       - ./nginx/nginx-certbot.env
     ports:
