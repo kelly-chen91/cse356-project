@@ -39,7 +39,7 @@ services:
     depends_on:
       - mail
       - mongodb
-      - nginx
+      # - nginx
   # nginx:
   #   container_name: nginx
   #   image: jonasal/nginx-certbot:latest
