@@ -30,7 +30,7 @@ async function getVideosUsersMap() {
  * @param user
  * @returns list of recommended videos.
  */
-function fallback_unwatched(recommendedVideos, videos, user) {
+function fallback_unwatched(recommendedVideos, videos, user, count) {
   const unwatchedVideos = videos.filter(
     (vid) => !user.watched.includes(vid.videoId) && vid.status !== "processing"
   );
@@ -52,7 +52,7 @@ function fallback_unwatched(recommendedVideos, videos, user) {
  * @param user
  * @returns list of recommended videos object.
  */
-function fallback_random(recommendedVideos, videos, user) {
+function fallback_random(recommendedVideos, videos, user, count) {
   const watchedVideos = videos.filter(
     (vid) => user.watched.includes(vid.videoId) && vid.status !== "processing"
   );
@@ -95,10 +95,10 @@ function formatResponse(recommendedVideos, user) {
 }
 
 export async function similarVideosByUser(userId, count) {
+  const [users, videos, userMap, videoMap] = await getVideosUsersMap();
+  
   const recommendedVideos = new Set();
   const user = userMap[userId];
-
-  const [users, videos, userMap, videoMap] = await getVideosUsersMap();
 
   if (users.length > 1) {
     // Step 1: Prepare the list of all video IDs and the user's preference vector
@@ -147,8 +147,8 @@ export async function similarVideosByUser(userId, count) {
     }
   }
 
-  fallback_unwatched(recommendedVideos, videos, user);
-  fallback_random(recommendedVideos, videos, user);
+  fallback_unwatched(recommendedVideos, videos, user, count);
+  fallback_random(recommendedVideos, videos, user, count);
   const videoList = formatResponse(recommendedVideos, user);
 
   console.log("SENDING VIDEO LIST =====");
