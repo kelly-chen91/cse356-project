@@ -48,10 +48,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // No longer needed due to nginx config
 
-// app.use((req, res, next) => {
-//   res.setHeader("X-CSE356", "66d11e647f77bf55c5003c0b");
-//   next();
-// });
+app.use((req, res, next) => {
+  res.setHeader("X-CSE356", "66d11e647f77bf55c5003c0b");
+  next();
+});
 
 app.use("/", authRoutesRouter);
 app.use("/", videoRoutesRouter);
