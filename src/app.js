@@ -10,6 +10,7 @@ dotenv.config();
 // Getting project modules.
 import { connectDB } from "./config/dbConfig.js";
 import authRoutesRouter from "./routes/authRoutes.js";
+import videoRoutesRouter from "./routes/videoRoutes.js";
 
 // Connect to MongoDB
 connectDB();
@@ -44,12 +45,16 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req, res, next) => {
-  res.setHeader("X-CSE356", "66d11e647f77bf55c5003c0b");
-  next();
-});
+
+// No longer needed due to nginx config
+
+// app.use((req, res, next) => {
+//   res.setHeader("X-CSE356", "66d11e647f77bf55c5003c0b");
+//   next();
+// });
 
 app.use("/", authRoutesRouter);
+app.use("/", videoRoutesRouter);
 
 // Placeholder for routes and server logic
 app.get("/", (req, res) => {
