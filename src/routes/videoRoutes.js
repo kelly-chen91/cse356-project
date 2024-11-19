@@ -165,7 +165,7 @@ router
     // console.log("body:", req.body);
     // console.log("mp4File:", mp4File);
 
-    if (!author || !title || /*!description ||*/ !mp4File) {
+    if (!author || !title || !description || !mp4File) {
       return res.status(400).json({
         status: "ERROR",
         error: true,
@@ -178,7 +178,7 @@ router
     const newVideo = new Video({
       author: author,
       title: title,
-      description: "description",
+      description: description,
       status: "processing",
       manifest: `${videoName}_output.mpd`,
       thumbnail: `${videoName}_thumbnail.jpg`,
