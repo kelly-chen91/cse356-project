@@ -94,10 +94,7 @@ function formatResponse(recommendedVideos, user) {
   return videoList;
 }
 
-export async function similarVideosByUser(userId, count) {
-  const [users, videos, userMap, videoMap] = await getVideosUsersMap();
-  
-  const recommendedVideos = new Set();
+export function similarVideosByUser(users, videos, userMap, videoMap, userId, recommendedVideos, count) {  
   const user = userMap[userId];
 
   if (users.length > 1) {
@@ -147,16 +144,37 @@ export async function similarVideosByUser(userId, count) {
     }
   }
 
+  return recommendedVideos;
+}
+
+export function similarVideosByVideos(videoId, videos, recommendedVideos, count) {
+  return 1;
+}
+
+export async function getRecommendation(mode, userId, videoId, count) {
+  // Prepare variables to store information.
+  const [users, videos, userMap, videoMap] = await getVideosUsersMap();
+  
+  const recommendedVideos = new Set();
+  const user = userMap[userId];
+
+  // Get similar videos by item based rec.
+  if (mode === 'item-based') {
+    similarVideosByVideos(videoId, videos, recommendedVideos, count);
+  }
+
+  // Get similar videos by user based rec.
+  similarVideosByUser(users, videos, userMap, videoMap, userId, recommendedVideos, count);
+
+  // Fall backs.
   fallback_unwatched(recommendedVideos, videos, user, count);
   fallback_random(recommendedVideos, videos, user, count);
+
+  // Wrap the video into videoList. Return videoList.
   const videoList = formatResponse(recommendedVideos, user);
 
   console.log("SENDING VIDEO LIST =====");
   console.log(videoList);
 
   return videoList;
-}
-
-export function similarVideosByVideos(videoId, count) {
-  return 1;
 }
