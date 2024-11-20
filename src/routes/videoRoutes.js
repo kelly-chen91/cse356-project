@@ -5,7 +5,7 @@ import User from "../models/users.js";
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
-import { similarVideosByUser } from "../utils/recommender.js";
+import { getRecommendation } from "../utils/recommender.js";
 
 // Setup Multer
 const storage = multer.diskStorage({
@@ -38,12 +38,16 @@ router
   })
   .post("/api/videos", async (req, res) => {
     console.log("reached /api/videos");
-    const { count } = req.body;
+    const { videoId, count } = req.body;
     const userId = req.session.userId;
     
     console.log("COUNT=", count);
 
-    const videoList = await similarVideosByUser(userId, count);
+    const mode = videoId ? "item-based" : "user-based";
+
+    console.log(`Getting mode: ${mode}, video ID: ${videoId}`);
+
+    const videoList = await getRecommendation(mode, userId, videoId, count);
 
     console.log("SENDING VIDEO LIST =====");
     console.log(videoList);
