@@ -3,7 +3,59 @@
 <html>
   <head>
     <title>MPEG-DASH Media Player</title>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   </head>
+  <style>
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+    .formContainer {
+        /* width: 60vw;
+        height: 60vh; */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    #loginForm {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #loginForm input {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+    }
+
+    #loginForm button {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+        background-color: cadetblue;
+        cursor: pointer;
+    }
+
+    #adminLoginForm button {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+        background-color: cadetblue;
+        cursor: pointer;
+    }
+
+    a {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+        border: 1px gray solid;
+    }
+  </style>
   <body>
     <div class="formContainer">
       <form id="loginForm">
@@ -11,6 +63,9 @@
         <input type="username" id="username" name="username" placeholder="Username" required />
         <input type="password" id="password" name="password" placeholder="Password" required />
         <button type="submit">Login</button>
+      </form>
+      <form id="adminLoginForm">
+        <button type="submit">Login as Admin</button>
       </form>
       <a href="SignupPage.html">Click here to sign up</a>
       <p id="loginError" style="display: none">Wrong Username/Password</p>
@@ -22,6 +77,36 @@
           e.preventDefault();
           const username = document.getElementById("username").value;
           const password = document.getElementById("password").value;
+
+          try {
+            const response = await fetch(
+              "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/login",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+              }
+            );
+
+            const data = await response.json();
+            console.log(data);
+            // Handle success or error
+            if (data.status === "ERROR")
+              document.getElementById("loginError").style.display = "block";
+            else window.location.href = "/";
+          } catch (error) {
+            console.error("Login failed:", error);
+          }
+        });
+
+        document
+        .getElementById("adminLoginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const username = "a";
+          const password = "a";
 
           try {
             const response = await fetch(

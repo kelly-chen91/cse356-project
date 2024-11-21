@@ -66,7 +66,7 @@ function fallback_random(recommendedVideos, videos, user, count) {
   }
 
   // console.table("RESULT OF RECOMMENDED VIDEOS:");
-  console.log(recommendedVideos);
+//   console.log(recommendedVideos);
   return recommendedVideos;
 }
 

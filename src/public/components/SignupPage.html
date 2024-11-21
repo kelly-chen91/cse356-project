@@ -2,7 +2,52 @@
 <html>
   <head>
     <title>MPEG-DASH Media Player</title>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   </head>
+  <style>
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+    .formContainer {
+        /* width: 60vw;
+        height: 60vh; */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    #signupForm {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #signupForm input {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+    }
+
+    #signupForm button {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+        background-color: cadetblue;
+        cursor: pointer;
+    }
+
+    a {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 10px;
+        border: 1px gray solid;
+    }
+  </style>
+  
   <body>
     <div class="formContainer">
       <form id="signupForm">

@@ -1,103 +1,123 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>MPEG-DASH Media Player</title>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-  </head>
-  <body>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+</head>
+<style>
+    #logout {
+        position: fixed;
+        padding: 5px;
+        top: 10px;
+        left: 10px;
+        z-index: 1;
+    }
+</style>
+
+<body>
+    <button id="logout">Logout</button>
     <div id="videoList"></div>
     <script>
-      const videoListContainer = document.getElementById("videoList");
-      async function getThumbnails() {
-        //   try {
-        const videoIds = [
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-          "3818528-uhd_3840_2160_30fps",
-        ];
+        const videoListContainer = document.getElementById("videoList");
+        async function getThumbnails() {
+            try {
+                const count = 10;
 
-        // const count = 10;
+                const response = await fetch(
+                    "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ videoId: null, count: count }),
+                    }
+                );
 
-        // const response = await fetch(
-        //   "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/videos",
-        //   {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({ count }),
-        //   }
-        // );
+                if (response.ok) {
+                    const videoMetadatas = await response.json();
+                    const videos = videoMetadatas.videos;
 
-        // if (response.ok) {
-        //   const videoMetadatas = await response.json();
-        //   const videos = videoMetadatas.videos;
+                    videos.forEach(async (video) => {
+                        const id = video.id;
 
-        videoIds.forEach(async (id) => {
-          // const id = video.id;
+                        const thumbnailMetadata = await fetch(
+                            `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/thumbnail/${id}`,
+                            {
+                                method: "GET",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                            }
+                        );
 
-          const thumbnailMetadata = await fetch(
-            `http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/thumbnail/${id}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
+                        const thumbnailUrl = thumbnailMetadata.url;
+
+                        displayThumbnail(thumbnailUrl, id);
+                    });
+                } else {
+                    console.log("Failed to fetch thumbnails");
+                }
+            } catch (error) {
+                console.log("Error occured during fetch:", error);
             }
-          );
-
-          const thumbnailUrl = thumbnailMetadata.url;
-
-          displayThumbnail(thumbnailUrl, id);
-        });
-        //     } else {
-        //       console.log("Failed to fetch thumbnails");
-        //     }
-        //   } catch (error) {
-        //     console.log("Error occured during fetch:", error);
-        //   }
-      }
-
-      function displayThumbnail(url, id) {
-        const img = document.createElement("img");
-        img.src = url;
-        img.alt = "thumbnail";
-        img.onclick = function () {
-          window.location.href = `/play/${id}`;
-          // handleThumbnailClick(id);
-        };
-        videoListContainer.appendChild(img);
-      }
-
-      async function handleThumbnailClick(id) {
-        try {
-          await fetch(
-            `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${id}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          window.location.href = `/play/${id}`;
-          console.log(`/play/${id}`);
-        } catch (error) {
-          console.log("Error occured during fetch:", error);
         }
-      }
-      window.onload = function () {
-        getThumbnails();
-      };
+
+        function displayThumbnail(url, id) {
+            const img = document.createElement("img");
+            img.src = url;
+            img.alt = "thumbnail";
+            img.onclick = function () {
+                window.location.href = `/play/${id}`;
+                // handleThumbnailClick(id);
+            };
+            videoListContainer.appendChild(img);
+        }
+
+        async function handleThumbnailClick(id) {
+            try {
+                await fetch(
+                    `http://doitand711gang.cse356.compas.cs.stonybrook.edu/play/${id}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+
+                window.location.href = `/play/${id}`;
+                console.log(`/play/${id}`);
+            } catch (error) {
+                console.log("Error occured during fetch:", error);
+            }
+        }
+        window.onload = function () {
+            getThumbnails();
+        };
+
+        document
+            .getElementById("logout")
+            .addEventListener("click", async (e) => {
+                e.preventDefault();
+
+                try {
+                    const response = await fetch(
+                        "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/logout",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    );
+                } catch (error) {
+                    console.error("Logout failed:", error);
+                }
+            });
     </script>
-    yeet;
-  </body>
+</body>
+
 </html>
