@@ -40,7 +40,7 @@ router
     console.log("reached /api/videos");
     const { videoId, count } = req.body;
     const userId = req.session.userId;
-    
+
     console.log("COUNT=", count);
 
     const mode = videoId ? "item-based" : "user-based";
@@ -206,14 +206,9 @@ router
 
     const manifestCommand = `
         ffmpeg -i "padded_videos/${videoId}.mp4" \
-            -map 0:v -b:v:0 254k -s:v:0 320x180 \
-            -map 0:v -b:v:1 507k -s:v:1 320x180 \
-            -map 0:v -b:v:2 759k -s:v:2 480x270 \
-            -map 0:v -b:v:3 1013k -s:v:3 640x360 \
-            -map 0:v -b:v:4 1254k -s:v:4 640x360 \
-            -map 0:v -b:v:5 1883k -s:v:5 768x432 \
-            -map 0:v -b:v:6 3134k -s:v:6 1024x576 \
-            -map 0:v -b:v:7 4952k -s:v:7 1280x720 \
+            -map 0:v -b:v:0 512k -s:v:0 640x360 \
+            -map 0:v -b:v:1 768k -s:v:1 960x540 \
+            -map 0:v -b:v:2 1024k -s:v:2 1280x720 \
             -f dash -seg_duration 10 -use_template 1 -use_timeline 1 \
             -init_seg_name "${videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
             -media_seg_name "${videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
