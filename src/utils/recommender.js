@@ -124,14 +124,14 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
                             : 0;
                 });
                 const similarity = cosineSimilarity(userVector, otherUserVector);
-                similarityScores.push({ user: otherUser, similarity: similarity });
+                similarityScores.push({ user: otherUser, similarity: Number.isNaN(similarity) ? 0 : similarity });
             }
         });
 
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
 
-        console.log("SIMILARITY SCORES ===========> ",similarityScores);
+        console.log("SORTED SIMILARITY SCORES ===========> ",similarityScores);
 
         // Step 4: Get recommended videos based on similar users
         for (const { user: similarUser } of similarityScores) {
@@ -181,14 +181,15 @@ export function similarVideosByVideos(video, userId, users, videos, userMap, vid
                             : 0;
                 });
                 const similarity = cosineSimilarity(videoVector, otherVideoVector);
-                similarityScores.push({ video: otherVid, similarity: similarity });
+                // console.log(Number.isNaN(similarity));
+                similarityScores.push({ video: otherVid, similarity: Number.isNaN(similarity) ? 0 : similarity });
             }
         });
 
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
-        console.log("Similarity Scores===", similarityScores)
-
+        console.log("SORTED Similarity Scores ==========>", similarityScores)
+        
         // Step 4: Get recommended videos based on similar videos
         for (const { video: similarVideo } of similarityScores) {
             const similar_video = videoMap[similarVideo];
