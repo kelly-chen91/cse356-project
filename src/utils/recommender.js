@@ -131,6 +131,8 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
 
+        console.log("SIMILARITY SCORES ===========> ",similarityScores);
+
         // Step 4: Get recommended videos based on similar users
         for (const { user: similarUser } of similarityScores) {
             const similar_user = userMap[similarUser];
@@ -149,7 +151,9 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
     return recommendedVideos;
 }
 
-export function similarVideosByVideos(videoId, userId, users, videos, userMap, videoMap, recommendedVideos, count) {
+export function similarVideosByVideos(video, userId, users, videos, userMap, videoMap, recommendedVideos, count) {
+    const videoId = video.id
+
     const user = userMap[userId];
 
     if (users.length > 1) {
@@ -183,6 +187,7 @@ export function similarVideosByVideos(videoId, userId, users, videos, userMap, v
 
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
+        console.log("Similarity Scores===", similarityScores)
 
         // Step 4: Get recommended videos based on similar videos
         for (const { video: similarVideo } of similarityScores) {
