@@ -209,7 +209,7 @@ router
     const thumbnailCommand = `ffmpeg -i "padded_videos/${videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoId}_thumbnail.jpg" -y &> /dev/null`;
 
     const manifestCommand = `
-        ffmpeg -i "padded_videos/${videoId}.mp4" \
+        ffmpeg -hide_banner -loglevel error -i "padded_videos/${videoId}.mp4" \
             -map 0:v -b:v:0 512k -s:v:0 640x360 \
             -map 0:v -b:v:1 768k -s:v:1 960x540 \
             -map 0:v -b:v:2 1024k -s:v:2 1280x720 \
@@ -217,7 +217,7 @@ router
             -init_seg_name "${videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
             -media_seg_name "${videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
             -adaptation_sets "id=0,streams=v" \
-            "media/${videoId}_output.mpd &> /dev/null" \
+            "media/${videoId}_output.mpd"
         `;
 
     // Helper function to execute commands and return a Promise
