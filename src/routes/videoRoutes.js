@@ -224,6 +224,9 @@ router
     const execPromise = (command) => {
       return new Promise((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
+          console.log(error);
+          console.log(stderr);
+          console.log(stdout);
           if (error) {
             reject(`Error: ${error.message}`);
           }
