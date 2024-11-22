@@ -167,8 +167,8 @@ router
 
     const { author, title, description } = req.body;
     const mp4File = req.file;
-    // console.log("body:", req.body);
-    // console.log("mp4File:", mp4File);
+    console.log("body:", req.body);
+    console.log("mp4File:", mp4File);
 
     if (!author || !title || !description || !mp4File) {
       return res.status(400).json({
