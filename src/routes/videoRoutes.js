@@ -204,9 +204,9 @@ router
 
     // async () => {
     // FFmpeg command to pad the video to 1280x720 with black bars
-    const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoId}.mp4" -y`;
+    const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoId}.mp4" -y &> /dev/null`;
 
-    const thumbnailCommand = `ffmpeg -i "padded_videos/${videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoId}_thumbnail.jpg" -y`;
+    const thumbnailCommand = `ffmpeg -i "padded_videos/${videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoId}_thumbnail.jpg" -y &> /dev/null`;
 
     const manifestCommand = `
         ffmpeg -i "padded_videos/${videoId}.mp4" \
@@ -217,7 +217,8 @@ router
             -init_seg_name "${videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
             -media_seg_name "${videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
             -adaptation_sets "id=0,streams=v" \
-            "media/${videoId}_output.mpd"
+            "media/${videoId}_output.mpd" \
+            "&> /dev/null"
         `;
 
     // Helper function to execute commands and return a Promise
