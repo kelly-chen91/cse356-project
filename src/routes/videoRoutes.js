@@ -171,6 +171,7 @@ router
     console.log("mp4File:", mp4File);
 
     if (!author || !title || !description || !mp4File) {
+      console.log("ERR");
       return res.status(400).json({
         status: "ERROR",
         error: true,
