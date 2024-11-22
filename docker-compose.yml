@@ -56,13 +56,13 @@ services:
       - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
       - ./nginx/user_conf.d:/etc/nginx/user_conf.d # or a host mount with a relative or full path.
 
-  # # Redis for Gorse
-  # redis:
-  #   container_name: redis
-  #   image: redis
-  #   restart: unless-stopped
-  #   ports:
-  #     - 6379:6379
+  # Redis for Message Queue
+  redis:
+    container_name: redis
+    image: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
 
   # rec_system:
   #   container_name: recsys

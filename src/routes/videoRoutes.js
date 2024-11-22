@@ -168,7 +168,7 @@ router
     const { author, title, description } = req.body;
     const mp4File = req.file;
     console.log("body:", req.body);
-    console.log("mp4File:", mp4File);
+    console.log("mp4File:", mp4File.filename);
 
     // SKIBIDI WAS HERE :3
 
@@ -224,9 +224,9 @@ router
     const execPromise = (command) => {
       return new Promise((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
-          console.log(error);
-          console.log(stderr);
-          console.log(stdout);
+          // console.log(error);
+          // console.log(stderr);
+          // console.log(stdout);
           if (error) {
             reject(`Error: ${error.message}`);
           }
