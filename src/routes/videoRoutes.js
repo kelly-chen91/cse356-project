@@ -217,8 +217,7 @@ router
             -init_seg_name "${videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
             -media_seg_name "${videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
             -adaptation_sets "id=0,streams=v" \
-            "media/${videoId}_output.mpd" \
-            "&> /dev/null"
+            "media/${videoId}_output.mpd &> /dev/null" \
         `;
 
     // Helper function to execute commands and return a Promise
