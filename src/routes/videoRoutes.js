@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     // Use the original filename and add a unique identifier to avoid overwrites
-    console.log("filename === ", file.originalname);
+    console.log("filename ===", file.originalname);
     cb(null, `${file.originalname}`);
   },
 });
