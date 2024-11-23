@@ -93,13 +93,13 @@ def worker():
         for message in pubsub.listen():
             # task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
             logging.info("message: ", message)
-            if message:
-                _, task_json = message
-                task = json.loads(task_json)
-                logging.info(f"Processing task: {task}")
-                # processTask(task)
-            else:
-                logging.info("No tasks in the queue. Waiting...")
+            # if message:
+            #     _, task_json = message
+            #     task = json.loads(task_json)
+            #     logging.info(f"Processing task: {task}")
+            #     # processTask(task)
+            # else:
+            #     logging.info("No tasks in the queue. Waiting...")
     except Exception as ex:
         logging.error(f"Worker error: {ex}")
         sys.exit(1)
