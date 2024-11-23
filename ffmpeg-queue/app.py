@@ -59,7 +59,7 @@ def processTask(task):
         # Update videoId's processing status to complete
         database = mongo_client.get_database("warmup")
         videos = database.get_collection("videos")
-        updateStatus = {"status": "complete"}
+        updateStatus = {"$set":{"status": "complete"}}
         res = videos.update_one({"_id": videoId}, updateStatus)
         print(f'Successfully updated processing status: {res}')
         
