@@ -210,7 +210,7 @@ router
     res.status(200).json({ status: "OK", id: videoId });
 
     //Insert Redis queue here
-
+    const task = JSON.stringify({ videoName, videoId });
     taskQueue.rpush("ffmpeg_tasks", task, (err) => {
       if (err) {
         console.error("Error adding task to queue:", err);
