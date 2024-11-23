@@ -27,10 +27,10 @@ def processTask(task):
     videoId = task['videoId']
     
     # FFmpeg commands
-    thumbnailCommand = f"""
+    padCommand = f"""
         ffmpeg -i "videos/{videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/{videoId}.mp4" -threads 1 -y
     """
-    padCommand = f"""
+    thumbnailCommand = f"""
         ffmpeg -i "padded_videos/{videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/{videoId}_thumbnail.jpg" -threads 1 -y
     """
     manifestCommand = f"""
@@ -46,11 +46,11 @@ def processTask(task):
     """
     
     try:
-        # # Run FFmpeg commands
-        # subprocess.run(thumbnailCommand, shell=True, check=True)
-        # logging.info(f"Thumbnail generated for {videoId}")
+        # Run FFmpeg commands
+        subprocess.run(padCommand, shell=True, check=True)
+        logging.info(f"Padded Video generated for {videoId}")
         
-        # subprocess.run(padCommand, shell=True, check=True)
+        # subprocess.run(thumbnailCommand, shell=True, check=True)
         # logging.info(f"Thumbnail padding completed for {videoId}")
         
         # subprocess.run(manifestCommand, shell=True, check=True)
@@ -97,6 +97,7 @@ def worker():
                 task = json.loads(message['data'])
                 logging.info(f"Received task: {task}")
                 logging.info(f"VideoId: {task['videoId']}, VideoName {task['videoName']}")
+                processTask(task)
             # if message:
             #     _, task_json = message
             #     task = json.loads(task_json)
