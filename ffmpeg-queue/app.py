@@ -96,6 +96,7 @@ def worker():
                 logging.info(f"message: {message}")
                 task = json.loads(message['data'])
                 logging.info(f"Received task: {task}")
+                logging.info(f"VideoId: {task['videoId']}, VideoName {task['videoName']}")
             # if message:
             #     _, task_json = message
             #     task = json.loads(task_json)
