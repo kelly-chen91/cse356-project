@@ -30,13 +30,13 @@ def processTask(task):
     
     # FFmpeg commands
     padCommand = f"""
-        ffmpeg -i "videos/{videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/{videoId}.mp4" -threads 1 -y
+        ffmpeg -threads 1 -i "videos/{videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/{videoId}.mp4" -y
     """
     thumbnailCommand = f"""
-        ffmpeg -i "padded_videos/{videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/{videoId}_thumbnail.jpg" -threads 1 -y
+        ffmpeg -threads 1 -i "padded_videos/{videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/{videoId}_thumbnail.jpg" -y
     """
     manifestCommand = f"""
-        ffmpeg -hide_banner -loglevel error -i "padded_videos/{videoId}.mp4" \
+        ffmpeg -hide_banner -loglevel error -threads 1 -i "padded_videos/{videoId}.mp4" \
         -map 0:v -b:v:0 512k -s:v:0 640x360 \
         -map 0:v -b:v:1 768k -s:v:1 960x540 \
         -map 0:v -b:v:2 1024k -s:v:2 1280x720 \
@@ -44,7 +44,7 @@ def processTask(task):
         -init_seg_name "{videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
         -media_seg_name "{videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
         -adaptation_sets "id=0,streams=v" \
-        "media/{videoId}_output.mpd" -threads 1
+        "media/{videoId}_output.mpd"
     """
     
     try:
