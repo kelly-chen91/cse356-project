@@ -88,11 +88,11 @@ def worker():
         
         pubsub.subscribe('ffmpeg_tasks')
         
-        print(pubsub)
+        logging.info(pubsub)
         # while True:
         for message in pubsub.listen():
             # task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
-            print("message: ", message)
+            logging.info("message: ", message)
             # if message:
             #     _, task_json = message
             #     task = json.loads(task_json)
