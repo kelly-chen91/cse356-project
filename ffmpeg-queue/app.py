@@ -7,6 +7,8 @@ import sys
 from dotenv import load_dotenv
 import os 
 from pymongo import MongoClient
+from bson import ObjectId
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -60,7 +62,7 @@ def processTask(task):
         database = mongo_client.get_database("warmup")
         videos = database.get_collection("videos")
         updateStatus = {"$set":{"status": "complete"}}
-        res = videos.update_one({"_id": videoId}, updateStatus)
+        res = videos.update_one({"_id": ObjectId(videoId)}, updateStatus)
         logging.info(f'Successfully updated processing status: {res}')
         
         logging.info(f'Processed Video ID: {videoId}, Video Name: {videoName}')
