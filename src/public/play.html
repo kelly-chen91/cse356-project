@@ -247,7 +247,7 @@
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ count: count }),
+                body: JSON.stringify({ videoId: {id: currentVideoId}, count: count }),
             })
                 .then((response) => response.json())
                 .then((data) => {
@@ -274,7 +274,7 @@
         });
 
         let scrollTimeout = null;
-        const debounceDuration = 750;
+        const debounceDuration = 150;
 
         window.addEventListener("wheel", async (event) => {
             if (scrollTimeout) return;

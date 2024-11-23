@@ -1,11 +1,12 @@
 import express from "express";
 import multer from "multer";
+import redis from "redis"; 
 import Video from "../models/videos.js";
 import User from "../models/users.js";
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
-import { similarVideosByUser } from "../utils/recommender.js";
+import { getRecommendation } from "../utils/recommender.js";
 
 // Setup Multer
 const storage = multer.diskStorage({
@@ -14,10 +15,18 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     // Use the original filename and add a unique identifier to avoid overwrites
+    console.log("filename ===", file.originalname);
     cb(null, `${file.originalname}`);
   },
 });
 const upload = multer({ storage: storage });
+const taskQueue = redis.createClient({
+  url: process.env.REDIS_URL
+})
+
+await taskQueue.connect();
+taskQueue.on("error", (err) => console.error("Redis Client Error:", err));
+
 
 const router = express.Router();
 
@@ -38,12 +47,16 @@ router
   })
   .post("/api/videos", async (req, res) => {
     console.log("reached /api/videos");
-    const { count } = req.body;
+    const { videoId, count } = req.body;
     const userId = req.session.userId;
 
     console.log("COUNT=", count);
 
-    const videoList = await similarVideosByUser(userId, count);
+    const mode = videoId ? "item-based" : "user-based";
+
+    console.log(`Getting mode: ${mode}, video ID: ${videoId}`);
+
+    const videoList = await getRecommendation(mode, userId, videoId, count);
 
     console.log("SENDING VIDEO LIST =====");
     console.log(videoList);
@@ -162,10 +175,13 @@ router
 
     const { author, title, description } = req.body;
     const mp4File = req.file;
-    // console.log("body:", req.body);
-    // console.log("mp4File:", mp4File);
+    console.log("body:", req.body);
+    // console.log("mp4File:", mp4File.filename);
+
+    // SKIBIDI WAS HERE :3
 
     if (!author || !title || !description || !mp4File) {
+      console.log("ERR");
       return res.status(400).json({
         status: "ERROR",
         error: true,
@@ -194,22 +210,28 @@ router
 
     res.status(200).json({ status: "OK", id: videoId });
 
-    // async () => {
-    // FFmpeg command to pad the video to 1280x720 with black bars
-    const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoId}.mp4" -y`;
+    //Insert Redis queue here
+    const task = JSON.stringify({ videoName: videoName, videoId: videoId });
+    console.log("what is task ==== ", task)
+    taskQueue.publish("ffmpeg_tasks", task, (err) => {
+      if (err) {
+        console.error("Error adding task to queue:", err);
+        return res.status(500).json({ error: "Failed to queue task" });
+      }
+      console.log(`Task queued: ${task}`);
+      return res.status(200).json({ message: "Task queued successfully", task });
+    });
 
-    const thumbnailCommand = `ffmpeg -i "padded_videos/${videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoId}_thumbnail.jpg" -y`;
+    // FFmpeg command to pad the video to 1280x720 with black bars
+    const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoId}.mp4" -y &> /dev/null`;
+
+    const thumbnailCommand = `ffmpeg -i "padded_videos/${videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/${videoId}_thumbnail.jpg" -y &> /dev/null`;
 
     const manifestCommand = `
-        ffmpeg -i "padded_videos/${videoId}.mp4" \
-            -map 0:v -b:v:0 254k -s:v:0 320x180 \
-            -map 0:v -b:v:1 507k -s:v:1 320x180 \
-            -map 0:v -b:v:2 759k -s:v:2 480x270 \
-            -map 0:v -b:v:3 1013k -s:v:3 640x360 \
-            -map 0:v -b:v:4 1254k -s:v:4 640x360 \
-            -map 0:v -b:v:5 1883k -s:v:5 768x432 \
-            -map 0:v -b:v:6 3134k -s:v:6 1024x576 \
-            -map 0:v -b:v:7 4952k -s:v:7 1280x720 \
+        ffmpeg -hide_banner -loglevel error -i "padded_videos/${videoId}.mp4" \
+            -map 0:v -b:v:0 512k -s:v:0 640x360 \
+            -map 0:v -b:v:1 768k -s:v:1 960x540 \
+            -map 0:v -b:v:2 1024k -s:v:2 1280x720 \
             -f dash -seg_duration 10 -use_template 1 -use_timeline 1 \
             -init_seg_name "${videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
             -media_seg_name "${videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
@@ -221,6 +243,9 @@ router
     const execPromise = (command) => {
       return new Promise((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
+          // console.log(error);
+          // console.log(stderr);
+          // console.log(stdout);
           if (error) {
             reject(`Error: ${error.message}`);
           }
@@ -233,21 +258,22 @@ router
     };
 
     // Execute the padding command first
-    console.log(`Executing padding command... video name=${videoName}`);
-    await execPromise(padCommand);
+    // console.log(`Executing padding command... video name=${videoName}`);
+    // await execPromise(padCommand);
 
     // After padding completes, create the thumbnail
-    console.log("Creating thumbnail now...");
-    await execPromise(thumbnailCommand);
+    // console.log("Creating thumbnail now...");
+    // await execPromise(thumbnailCommand);
 
     // After thumbnail creation, execute the manifest command
-    console.log("Creating chunk and mpd...");
-    await execPromise(manifestCommand);
+    // console.log("Creating chunk and mpd...");
+    // await execPromise(manifestCommand);
 
-    newVideo.status = "complete";
-    await newVideo.save();
+    // Updates Status after recieved notifications
+    // newVideo.status = "complete";
+    // await newVideo.save();
 
-    console.log("All commands executed successfully!");
+    // console.log("All commands executed successfully!");
   })
   .get("/api/processing-status", async (req, res) => {
     console.log("Reached api/processing-status");

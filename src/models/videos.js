@@ -8,6 +8,7 @@ var VideoSchema = new Schema({
     default: function () {
       return `${this._id}`;
     },
+    index: true
   },
   uuid: { type: String },
   author: { type: String, default: "Anonymous" },

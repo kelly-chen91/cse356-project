@@ -1,0 +1,7 @@
+async-timeout==5.0.1
+dnspython==2.7.0
+pymongo==4.10.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
+redis==5.2.0
+six==1.16.0
