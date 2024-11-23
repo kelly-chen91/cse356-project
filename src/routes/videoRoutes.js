@@ -258,22 +258,22 @@ router
     };
 
     // Execute the padding command first
-    console.log(`Executing padding command... video name=${videoName}`);
+    // console.log(`Executing padding command... video name=${videoName}`);
     // await execPromise(padCommand);
 
     // After padding completes, create the thumbnail
-    console.log("Creating thumbnail now...");
+    // console.log("Creating thumbnail now...");
     // await execPromise(thumbnailCommand);
 
     // After thumbnail creation, execute the manifest command
-    console.log("Creating chunk and mpd...");
+    // console.log("Creating chunk and mpd...");
     // await execPromise(manifestCommand);
 
     // Updates Status after recieved notifications
     // newVideo.status = "complete";
     // await newVideo.save();
 
-    console.log("All commands executed successfully!");
+    // console.log("All commands executed successfully!");
   })
   .get("/api/processing-status", async (req, res) => {
     console.log("Reached api/processing-status");
