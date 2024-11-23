@@ -24,6 +24,7 @@ const taskQueue = redis.createClient({
   url: process.env.REDIS_URL
 })
 
+await taskQueue.connect();
 taskQueue.on("error", (err) => console.error("Redis Client Error:", err));
 
 
@@ -211,7 +212,7 @@ router
 
     //Insert Redis queue here
     const task = JSON.stringify({ videoName, videoId });
-    taskQueue.rpush("ffmpeg_tasks", task, (err) => {
+    taskQueue.publish("ffmpeg_tasks", task, (err) => {
       if (err) {
         console.error("Error adding task to queue:", err);
         return res.status(500).json({ error: "Failed to queue task" });

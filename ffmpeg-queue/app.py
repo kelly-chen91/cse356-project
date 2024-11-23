@@ -84,17 +84,19 @@ def worker():
         redis_client.ping()
         logging.info("Connected to Redis!")
         
-
+        redis_client.subscribe('ffmpeg_tasks')
         
-        while True:
-            task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
-            if task_data:
-                _, task_json = task_data
-                task = json.loads(task_json)
-                logging.info(f"Processing task: {task}")
-                processTask(task)
-            else:
-                logging.info("No tasks in the queue. Waiting...")
+        # while True:
+        for message in redis_client.listen():
+            # task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
+            print("message: ", message)
+            # if message:
+            #     _, task_json = message
+            #     task = json.loads(task_json)
+            #     logging.info(f"Processing task: {task}")
+            #     processTask(task)
+            # else:
+            #     logging.info("No tasks in the queue. Waiting...")
     except Exception as ex:
         logging.error(f"Worker error: {ex}")
         sys.exit(1)
