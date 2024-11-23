@@ -61,9 +61,9 @@ def processTask(task):
         videos = database.get_collection("videos")
         updateStatus = {"$set":{"status": "complete"}}
         res = videos.update_one({"_id": videoId}, updateStatus)
-        print(f'Successfully updated processing status: {res}')
+        logging.info(f'Successfully updated processing status: {res}')
         
-        print(f'Processed Video ID: {videoId}, Video Name: {videoName}')
+        logging.info(f'Processed Video ID: {videoId}, Video Name: {videoName}')
 
     except subprocess.CalledProcessError as e:
         # Send failure message
