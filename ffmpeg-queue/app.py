@@ -44,7 +44,7 @@ def processTask(task):
         -init_seg_name "{videoId}_chunk_init_\\$RepresentationID\\$.m4s" \
         -media_seg_name "{videoId}_chunk_\\$RepresentationID\\$_\\$Number\\$.m4s" \
         -adaptation_sets "id=0,streams=v" \
-        "media/{videoId}_output.mpd" -threads 4
+        "media/{videoId}_output.mpd" -threads 1
     """
     
     try:
