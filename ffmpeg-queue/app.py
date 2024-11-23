@@ -84,12 +84,13 @@ def worker():
         redis_client.ping()
         logging.info("Connected to Redis!")
         
-        channel = redis_client.pubsub()
+        pubsub = redis_client.pubsub()
         
-        channel.subscribe('ffmpeg_tasks')
+        pubsub.subscribe('ffmpeg_tasks')
         
+        print(pubsub)
         # while True:
-        for message in channel.listen():
+        for message in pubsub.listen():
             # task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
             print("message: ", message)
             # if message:
