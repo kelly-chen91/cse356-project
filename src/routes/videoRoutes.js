@@ -270,8 +270,8 @@ router
     // await execPromise(manifestCommand);
 
     // Updates Status after recieved notifications
-    newVideo.status = "complete";
-    await newVideo.save();
+    // newVideo.status = "complete";
+    // await newVideo.save();
 
     console.log("All commands executed successfully!");
   })

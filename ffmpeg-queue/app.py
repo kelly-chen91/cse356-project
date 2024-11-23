@@ -19,7 +19,7 @@ redis_client = None
 
 # Mongo client
 mongo_client = MongoClient(os.getenv("MONGO_URL"))
-print("Connected to MongoDB!")
+logging.info("Connected to MongoDB!")
 
 def processTask(task):
     """Process a single FFmpeg task."""
@@ -50,18 +50,18 @@ def processTask(task):
         subprocess.run(padCommand, shell=True, check=True)
         logging.info(f"Padded Video generated for {videoId}")
         
-        # subprocess.run(thumbnailCommand, shell=True, check=True)
-        # logging.info(f"Thumbnail padding completed for {videoId}")
+        subprocess.run(thumbnailCommand, shell=True, check=True)
+        logging.info(f"Thumbnail padding completed for {videoId}")
         
-        # subprocess.run(manifestCommand, shell=True, check=True)
-        # logging.info(f"Manifest created for {videoId}")
+        subprocess.run(manifestCommand, shell=True, check=True)
+        logging.info(f"Manifest created for {videoId}")
         
-        # # Update videoId's processing status to complete
-        # database = mongo_client.get_database("warmup")
-        # videos = database.get_collection("videos")
-        # updateStatus = {"status": "complete"}
-        # res = videos.update_one({"_id": videoId}, updateStatus)
-        # print(f'Successfully updated processing status: {res}')
+        # Update videoId's processing status to complete
+        database = mongo_client.get_database("warmup")
+        videos = database.get_collection("videos")
+        updateStatus = {"status": "complete"}
+        res = videos.update_one({"_id": videoId}, updateStatus)
+        print(f'Successfully updated processing status: {res}')
         
         print(f'Processed Video ID: {videoId}, Video Name: {videoName}')
 
