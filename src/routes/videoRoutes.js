@@ -1,5 +1,6 @@
 import express from "express";
 import multer from "multer";
+import redis from "redis"; 
 import Video from "../models/videos.js";
 import User from "../models/users.js";
 import fs from "fs";
@@ -19,6 +20,12 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
+const taskQueue = redis.createClient({
+  url: process.env.REDIS_URL
+})
+
+taskQueue.on("error", (err) => console.error("Redis Client Error:", err));
+
 
 const router = express.Router();
 
@@ -202,7 +209,17 @@ router
 
     res.status(200).json({ status: "OK", id: videoId });
 
-    // async () => {
+    //Insert Redis queue here
+
+    taskQueue.rpush("ffmpeg_tasks", task, (err) => {
+      if (err) {
+        console.error("Error adding task to queue:", err);
+        return res.status(500).json({ error: "Failed to queue task" });
+      }
+      console.log(`Task queued: ${task}`);
+      return res.status(200).json({ message: "Task queued successfully", task });
+    });
+
     // FFmpeg command to pad the video to 1280x720 with black bars
     const padCommand = `ffmpeg -i "videos/${videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/${videoId}.mp4" -y &> /dev/null`;
 
@@ -250,6 +267,7 @@ router
     console.log("Creating chunk and mpd...");
     await execPromise(manifestCommand);
 
+    // Updates Status after recieved notifications
     newVideo.status = "complete";
     await newVideo.save();
 
