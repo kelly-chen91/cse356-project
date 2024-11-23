@@ -92,7 +92,7 @@ def worker():
         # while True:
         for message in pubsub.listen():
             # task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
-            if message: 
+            if message['type']=='message': 
                 logging.info(f"message: {message}")
                 task = json.loads(message['data'])
                 logging.info(f"Received task: {task}")
