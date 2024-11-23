@@ -212,6 +212,7 @@ router
 
     //Insert Redis queue here
     const task = JSON.stringify({ videoName: videoName, videoId: videoId });
+    console.log("what is task ==== ", task)
     taskQueue.publish("ffmpeg_tasks", task, (err) => {
       if (err) {
         console.error("Error adding task to queue:", err);
@@ -258,15 +259,15 @@ router
 
     // Execute the padding command first
     console.log(`Executing padding command... video name=${videoName}`);
-    await execPromise(padCommand);
+    // await execPromise(padCommand);
 
     // After padding completes, create the thumbnail
     console.log("Creating thumbnail now...");
-    await execPromise(thumbnailCommand);
+    // await execPromise(thumbnailCommand);
 
     // After thumbnail creation, execute the manifest command
     console.log("Creating chunk and mpd...");
-    await execPromise(manifestCommand);
+    // await execPromise(manifestCommand);
 
     // Updates Status after recieved notifications
     newVideo.status = "complete";
