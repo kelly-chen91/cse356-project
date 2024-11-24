@@ -91,22 +91,13 @@ def worker():
         pubsub.subscribe('ffmpeg_tasks')
         
         logging.info(pubsub)
-        # while True:
         for message in pubsub.listen():
-            # task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
             if message['type']=='message': 
                 logging.info(f"message: {message}")
                 task = json.loads(message['data'])
                 logging.info(f"Received task: {task}")
                 logging.info(f"VideoId: {task['videoId']}, VideoName {task['videoName']}")
                 processTask(task)
-            # if message:
-            #     _, task_json = message
-            #     task = json.loads(task_json)
-            #     logging.info(f"Processing task: {task}")
-            #     # processTask(task)
-            # else:
-            #     logging.info("No tasks in the queue. Waiting...")
     except Exception as ex:
         logging.error(f"Worker error: {ex}")
         sys.exit(1)
