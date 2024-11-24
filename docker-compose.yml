@@ -41,6 +41,7 @@ services:
       - mail
       - mongodb
       - nginx
+
   nginx:
     container_name: nginx
     image: jonasal/nginx-certbot:latest
@@ -61,6 +62,13 @@ services:
     container_name: redis
     image: redis
     restart: unless-stopped
+
+  # Memcache for videos rec.
+  memcached:
+    container_name: memcache
+    image: memcached:latest
+    ports:
+      - "11211:11211"
 
     # rec_system:
     #   container_name: recsys
