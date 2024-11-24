@@ -118,7 +118,7 @@ router
 
     try {
       const user = await User.findById(uid);
-      const video = await Video.findOne({ videoId: id });
+      let video = await Video.findOne({ videoId: id });
       console.log("Video likes Previous:", video.likes);
 
       const liked = user.liked.includes(id);
@@ -135,24 +135,31 @@ router
 
       if (value) {
         if (disliked) {
-          user.disliked.pull(id);
-          video.dislikedBy.pull(user._id);
+          // user.disliked.pull(id);
+          await User.findByIdAndUpdate(uid, {$pull: {disliked: id}});
+          // video.dislikedBy.pull(user._id);
+          video = await Video.findOneAndUpdate({videoId: id}, {$pull: {dislikedBy: uid}});
         }
-        user.liked.push(id);
-        video.likes += 1;
+        // user.liked.push(id);
+        await User.findByIdAndUpdate(uid, {$push: {liked: id}});
+        // video.likes += 1;
+        video = await Video.findOneAndUpdate({videoId: id}, {$inc: {likes: 1}});
       } else {
         if (liked) {
-          user.liked.pull(id);
-          video.likes -= 1;
+          // user.liked.pull(id);
+          await User.findByIdAndUpdate(uid, {$pull: {liked: id}})
+          // video.likes -= 1;
+          video = await Video.findOneAndUpdate({videoId: id}, {$inc: {likes: -1}})
         }
-        user.disliked.push(id);
+        // user.disliked.push(id);
+        await User.findByIdAndUpdate(uid, {$push: {disliked: id}})
         // video.dislike
       }
 
       console.log("Video likes after:", video.likes);
 
-      await user.save();
-      await video.save();
+      // await user.save();
+      // await video.save();
 
       res.status(200).json({ status: "OK", likes: video.likes });
     } catch (error) {
