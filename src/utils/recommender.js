@@ -1,73 +1,84 @@
 import Video from "../models/videos.js";
 import User from "../models/users.js";
 import cosineSimilarity from "compute-cosine-similarity";
-import { Memcached } from "memcached";
+import MemcachedPkg from "memcached";
+
+// Memcached is a CommonJS module, use the default property
+const Memcached = MemcachedPkg.default || MemcachedPkg;
 
 // Set up memcached.
 const memcached = new Memcached(`${process.env.MEMCACHED_HOST}`);
-console.log(memcached);
+// console.log(memcached);
+
+function getCachedData(key) {
+    return new Promise((resolve, reject) => {
+        memcached.get(key, (err, data) => {
+            if (err) {
+                console.error("Cannot get cache:", err);
+                return reject(err);
+            }
+            if (data) {
+                try {
+                    const { users, videos, userMap, videoMap } = JSON.parse(data);
+                    resolve([ users, videos, userMap, videoMap ]);
+                } catch (parseErr) {
+                    console.error("Error parsing cached data:", parseErr);
+                    reject(parseErr);
+                }
+            } else {
+                resolve(null); // No data found
+            }
+        });
+    });
+}
 
 /**
  * This is a function that makes query to the
  * @returns [users, videos, userMap, videoMap]
  */
 async function getVideosUsersMap() {
-    return new Promise((resolve, reject) => {
-        // Check the cache
-        memcached.get("recTab", async (err, cachedData) => {
-            if (err) {
-                console.error("Error accessing Memcached:", err);
-                reject(err);
-                return;
-            }
+    let users, videos, userMap, videoMap;
+    // check cache.
+    console.log("Getting cache....")
 
-            if (cachedData) {
-                // Data found in cache
-                console.log("Cache hit for recTab");
-                const { users, videos, userMap, videoMap } = JSON.parse(cachedData);
-                resolve([users, videos, userMap, videoMap]);
+    const cachedData = await getCachedData("recTab");
+    if (cachedData) {
+        console.log("Cache hit!");
+        return cachedData;
+    }
+    else {
+        console.log("Cache miss!")
+        // Cache all users and videos at once
+        users = await User.find({}).exec();
+        videos = await Video.find({}).exec();
+        userMap = users.reduce(
+            (map, user) => ((map[user._id] = user), map),
+            {}
+        );
+        videoMap = videos.reduce(
+            (map, video) => ((map[video.videoId] = video), map),
+            {}
+        );
+
+        // Cache the result
+        const dataToCache = JSON.stringify({
+            users,
+            videos,
+            userMap,
+            videoMap,
+        });
+
+        // Set cache with expiration time (e.g., 3600 seconds = 1 hour)
+        memcached.set("recTab", dataToCache, 60, (setErr) => {
+            if (setErr) {
+                console.error("Error setting cache:", setErr);
             } else {
-                // Data not found in cache, fetch from database
-                console.log("Cache miss for recTab");
-                try {
-                    const [users, videos] = await Promise.all([
-                        User.find({}).exec(),
-                        Video.find({}).exec(),
-                    ]);
-                    const userMap = users.reduce(
-                        (map, user) => ((map[user._id] = user), map),
-                        {}
-                    );
-                    const videoMap = videos.reduce(
-                        (map, video) => ((map[video.videoId] = video), map),
-                        {}
-                    );
-
-                    // Cache the result
-                    const dataToCache = JSON.stringify({
-                        users,
-                        videos,
-                        userMap,
-                        videoMap,
-                    });
-
-                    // Set cache with expiration time (e.g., 3600 seconds = 1 hour)
-                    memcached.set("recTab", dataToCache, 3600, (setErr) => {
-                        if (setErr) {
-                            console.error("Error setting cache:", setErr);
-                        } else {
-                            console.log("Data cached successfully.");
-                        }
-                    });
-
-                    resolve([users, videos, userMap, videoMap]);
-                } catch (dbErr) {
-                    console.error("Error fetching data from database:", dbErr);
-                    reject(dbErr);
-                }
+                console.log("Data cached successfully.");
             }
         });
-    });
+    }
+    
+    return [users, videos, userMap, videoMap];
 }
 
 /**
