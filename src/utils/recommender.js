@@ -152,7 +152,9 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
 }
 
 export function similarVideosByVideos(video, userId, users, videos, userMap, videoMap, recommendedVideos, count) {
-    const videoId = video.id
+    const videoId = video;
+
+    console.log(`Inside similar vid function ${videoId}`);
 
     const user = userMap[userId];
 
