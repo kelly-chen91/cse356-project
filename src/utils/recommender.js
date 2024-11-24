@@ -1,26 +1,73 @@
 import Video from "../models/videos.js";
 import User from "../models/users.js";
 import cosineSimilarity from "compute-cosine-similarity";
+import { Memcached } from "memcached";
+
+// Set up memcached.
+const memcached = new Memcached(`${process.env.MEMCACHED_HOST}`);
+console.log(memcached);
 
 /**
  * This is a function that makes query to the
  * @returns [users, videos, userMap, videoMap]
  */
 async function getVideosUsersMap() {
-    // Cache all users and videos at once
-    const [users, videos] = await Promise.all([
-        User.find({}).exec(),
-        Video.find({}).exec(),
-    ]);
-    const userMap = users.reduce(
-        (map, user) => ((map[user._id] = user), map),
-        {}
-    );
-    const videoMap = videos.reduce(
-        (map, video) => ((map[video.videoId] = video), map),
-        {}
-    );
-    return [users, videos, userMap, videoMap];
+    return new Promise((resolve, reject) => {
+        // Check the cache
+        memcached.get("recTab", async (err, cachedData) => {
+            if (err) {
+                console.error("Error accessing Memcached:", err);
+                reject(err);
+                return;
+            }
+
+            if (cachedData) {
+                // Data found in cache
+                console.log("Cache hit for recTab");
+                const { users, videos, userMap, videoMap } = JSON.parse(cachedData);
+                resolve([users, videos, userMap, videoMap]);
+            } else {
+                // Data not found in cache, fetch from database
+                console.log("Cache miss for recTab");
+                try {
+                    const [users, videos] = await Promise.all([
+                        User.find({}).exec(),
+                        Video.find({}).exec(),
+                    ]);
+                    const userMap = users.reduce(
+                        (map, user) => ((map[user._id] = user), map),
+                        {}
+                    );
+                    const videoMap = videos.reduce(
+                        (map, video) => ((map[video.videoId] = video), map),
+                        {}
+                    );
+
+                    // Cache the result
+                    const dataToCache = JSON.stringify({
+                        users,
+                        videos,
+                        userMap,
+                        videoMap,
+                    });
+
+                    // Set cache with expiration time (e.g., 3600 seconds = 1 hour)
+                    memcached.set("recTab", dataToCache, 3600, (setErr) => {
+                        if (setErr) {
+                            console.error("Error setting cache:", setErr);
+                        } else {
+                            console.log("Data cached successfully.");
+                        }
+                    });
+
+                    resolve([users, videos, userMap, videoMap]);
+                } catch (dbErr) {
+                    console.error("Error fetching data from database:", dbErr);
+                    reject(dbErr);
+                }
+            }
+        });
+    });
 }
 
 /**
