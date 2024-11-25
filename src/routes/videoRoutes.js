@@ -120,7 +120,7 @@ router
       const disliked = user.disliked.includes(id);
 
       if ((value && liked) || (!value && disliked)) {
-        // logger.info("The value that you want to set is the same");
+        logger.info("The value that you want to set is the same");
         return res.status(200).json({
           status: "ERROR",
           error: true,
