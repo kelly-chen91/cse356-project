@@ -120,7 +120,7 @@ router
       const disliked = user.disliked.includes(id);
 
       if ((value && liked) || (!value && disliked)) {
-        // logger.info("The value that you want to set is the same");
+        logger.info("The value that you want to set is the same");
         return res.status(200).json({
           status: "ERROR",
           error: true,
@@ -215,14 +215,14 @@ router
     //Insert Redis queue here
     const task = JSON.stringify({ videoName: videoName, videoId: videoId });
     // logger.info("what is task ==== ", task)
-    // taskQueue.publish("ffmpeg_tasks", task, (err) => {
-    //   if (err) {
-    //     console.error("Error adding task to queue:", err);
-    //     return res.status(500).json({ error: "Failed to queue task" });
-    //   }
-    //   // logger.info(`Task queued: ${task}`);
-    //   return res.status(200).json({ message: "Task queued successfully", task });
-    // });
+    taskQueue.publish("ffmpeg_tasks", task, (err) => {
+      if (err) {
+        console.error("Error adding task to queue:", err);
+        return res.status(500).json({ error: "Failed to queue task" });
+      }
+      // logger.info(`Task queued: ${task}`);
+      return res.status(200).json({ message: "Task queued successfully", task });
+    });
   })
   .get("/api/processing-status", async (req, res) => {
     logger.info("Reached api/processing-status");
