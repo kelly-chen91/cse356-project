@@ -2,6 +2,13 @@ import express from "express";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import User from "../models/users.js";
+import winston from "winston";
+const logger = winston.createLogger({
+    transports: [
+      new winston.transports.Console(), // Log to console
+      new winston.transports.File({ filename: 'app.log' }), // Log to file
+    ],
+  });
 
 const router = express.Router();
 
@@ -29,19 +36,19 @@ const transporter = nodemailer.createTransport({
 
 router
     .post("/api/adduser", async (req, res) => {
-        console.log("/adduser");
+        logger.info("/adduser");
         let { username, password, email } = req.body;
-        // console.log(`BEFORE EMAIL===== ${email}`);
+        // logger.info(`BEFORE EMAIL===== ${email}`);
 
         // email = encodeURI(email).replace(/%20/g, "+");
-        // console.log(`EMAIL===== ${email}, PASSWORD ==== ${password}`);
+        // logger.info(`EMAIL===== ${email}, PASSWORD ==== ${password}`);
         const ccEmail =
             "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
         // Check for duplicate user
         const userExists = await User.findOne({ $or: [{ username }, { email }] });
         if (userExists) {
-            console.log(`${username} ALREADY EXISTS`);
+            // logger.info(`${username} ALREADY EXISTS`);
             return res
                 .status(200)
                 .json({ status: "ERROR", error: true, message: "User already exists" });
@@ -58,7 +65,7 @@ router
             verified: false,
         });
         await newUser.save();
-        console.log(`${username} CREATED with id ${newUser._id}`);
+        logger.info(`${username} CREATED with id ${newUser._id}`);
 
         // Send out verification email.
         const mailOptions = {
@@ -71,9 +78,9 @@ router
         };
 
         await transporter.sendMail(mailOptions, (error, info) => {
-            // console.log("USER=====", newUser);
+            // logger.info("USER=====", newUser);
             if (error) {
-                console.log("VERIFICATION ERROR=====", error);
+                logger.info("VERIFICATION ERROR=====", error);
 
                 return res.status(200).json({
                     status: "ERROR",
@@ -89,12 +96,12 @@ router
                 .json({ status: "OK", message: `${username} successfully added.` });
     })
     .post("/api/login", async (req, res) => {
-        console.log("/api/login");
+        logger.info("/api/login");
         const { username, password } = req.body;
 
         const user = await User.findOne({ username });
-        // console.log(user);
-        // console.log(req.cookies);
+        // logger.info(user);
+        // logger.info(req.cookies);
         if (!user || !(await bcrypt.compare(password, user.pwhash))) {
             return res
                 .status(200)
@@ -107,13 +114,13 @@ router
                 .json({ status: "ERROR", error: true, message: "User not verified" });
         }
 
-        // console.log(req.session);
+        // logger.info(req.session);
 
         req.session.userId = user._id;
         res.status(200).json({ status: "OK", message: "Login successful" });
     })
     .post("/api/logout", (req, res) => {
-        console.log("Logging out...");
+        logger.info("Logging out...");
         req.session.destroy((err) => {
             if (err) {
                 return res.status(200).json({
@@ -127,7 +134,7 @@ router
     })
     .get("/api/verify", async (req, res) => {
         let { email, key } = req.query;
-        console.log("/verify");
+        logger.info("/verify");
         // console.table(req.query);
         email = encodeURI(email).replace(/%20/g, "+");
         const data = await User.findOne({ email });
@@ -136,7 +143,7 @@ router
             return res
                 .status(200)
                 .json({ status: "ERROR", error: true, message: "User not found" });
-        console.log("user found");
+        // logger.info("user found");
         // If user's verification key is correct, we log the user in and redirect them to home page
         // If it is not correct, we redirect to login page
         // if (key !== data.verificationKey) {
@@ -146,7 +153,7 @@ router
         //     );
         // } else {
         const user = await User.updateOne({ _id: data._id }, { verified: true });
-        // console.log(user);
+        // logger.info(user);
         //     // Generate Session here
         //     req.session.userId = user._id;
 

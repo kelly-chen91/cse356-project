@@ -5,6 +5,14 @@ import MongoStore from "connect-mongo"; //access to DB for session data
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
+import winston from "winston";
+
+const logger = winston.createLogger({
+    transports: [
+      new winston.transports.Console(), // Log to console
+      new winston.transports.File({ filename: 'app.log' }), // Log to file
+    ],
+  });
 dotenv.config();
 
 // Getting project modules.
@@ -58,7 +66,7 @@ app.use("/", videoRoutesRouter);
 
 // Placeholder for routes and server logic
 app.get("/", (req, res) => {
-  console.log("root path...");
+  logger.info("root path...");
 
   if (!req.session.userId) {
     // User not logged in, send to login page
@@ -80,7 +88,7 @@ app.get("/play/:id", (req, res) => {
       .json({ status: "ERROR", error: true, message: "User not logged in" });
 
   const id = req.params.id;
-  console.log("Reached /play/:id => id =", id);
+  logger.info("Reached /play/:id => id =", id);
 
   res.sendFile(playPage);
 });
@@ -97,4 +105,4 @@ app.get("/upload", (req, res) => {
 
 // Start the server
 const PORT = process.env.PORT || 80;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));

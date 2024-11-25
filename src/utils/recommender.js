@@ -1,73 +1,33 @@
 import Video from "../models/videos.js";
 import User from "../models/users.js";
 import cosineSimilarity from "compute-cosine-similarity";
-import { Memcached } from "memcached";
-
-// Set up memcached.
-const memcached = new Memcached(`${process.env.MEMCACHED_HOST}`);
-console.log(memcached);
+import winston from "winston";
+const logger = winston.createLogger({
+    transports: [
+      new winston.transports.Console(), // Log to console
+      new winston.transports.File({ filename: 'app.log' }), // Log to file
+    ],
+  });
 
 /**
  * This is a function that makes query to the
  * @returns [users, videos, userMap, videoMap]
  */
 async function getVideosUsersMap() {
-    return new Promise((resolve, reject) => {
-        // Check the cache
-        memcached.get("recTab", async (err, cachedData) => {
-            if (err) {
-                console.error("Error accessing Memcached:", err);
-                reject(err);
-                return;
-            }
-
-            if (cachedData) {
-                // Data found in cache
-                console.log("Cache hit for recTab");
-                const { users, videos, userMap, videoMap } = JSON.parse(cachedData);
-                resolve([users, videos, userMap, videoMap]);
-            } else {
-                // Data not found in cache, fetch from database
-                console.log("Cache miss for recTab");
-                try {
-                    const [users, videos] = await Promise.all([
-                        User.find({}).exec(),
-                        Video.find({}).exec(),
-                    ]);
-                    const userMap = users.reduce(
-                        (map, user) => ((map[user._id] = user), map),
-                        {}
-                    );
-                    const videoMap = videos.reduce(
-                        (map, video) => ((map[video.videoId] = video), map),
-                        {}
-                    );
-
-                    // Cache the result
-                    const dataToCache = JSON.stringify({
-                        users,
-                        videos,
-                        userMap,
-                        videoMap,
-                    });
-
-                    // Set cache with expiration time (e.g., 3600 seconds = 1 hour)
-                    memcached.set("recTab", dataToCache, 3600, (setErr) => {
-                        if (setErr) {
-                            console.error("Error setting cache:", setErr);
-                        } else {
-                            console.log("Data cached successfully.");
-                        }
-                    });
-
-                    resolve([users, videos, userMap, videoMap]);
-                } catch (dbErr) {
-                    console.error("Error fetching data from database:", dbErr);
-                    reject(dbErr);
-                }
-            }
-        });
-    });
+    // Cache all users and videos at once
+    const [users, videos] = await Promise.all([
+        User.find({}).exec(),
+        Video.find({}).exec(),
+    ]);
+    const userMap = users.reduce(
+        (map, user) => ((map[user._id] = user), map),
+        {}
+    );
+    const videoMap = videos.reduce(
+        (map, video) => ((map[video.videoId] = video), map),
+        {}
+    );
+    return [users, videos, userMap, videoMap];
 }
 
 /**
@@ -142,7 +102,7 @@ function formatResponse(recommendedVideos, user) {
 }
 
 export function similarVideosByUser(users, videos, userMap, videoMap, userId, recommendedVideos, count) {
-    console.log(`Reached video-based for user ${userId}`);
+    // console.log(`Reached video-based for user ${userId}`);
 
     const user = userMap[userId];
 
@@ -153,7 +113,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
             const disliked = vid.dislikedBy;
             return liked.includes(userId) ? 1 : disliked.includes(userId) ? -1 : 0; // No interaction
         });
-        console.log(`USER VECTOR = ${userVector}`);
+        // console.log(`USER VECTOR = ${userVector}`);
 
         // Step 2: Calculate similarity with other users using the `compute-cosine-similarity` library
         const similarityScores = [];
@@ -178,7 +138,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
 
-        console.log("SORTED SIMILARITY SCORES ===========> ",similarityScores);
+        // console.log("SORTED SIMILARITY SCORES ===========> ",similarityScores);
 
         // Step 4: Get recommended videos based on similar users
         for (const { user: similarUser } of similarityScores) {
@@ -201,7 +161,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
 export function similarVideosByVideos(video, userId, users, videos, userMap, videoMap, recommendedVideos, count) {
     const videoId = video;
 
-    console.log(`Inside similar vid function ${videoId}`);
+    // console.log(`Inside similar vid function ${videoId}`);
 
     const user = userMap[userId];
 
@@ -212,7 +172,7 @@ export function similarVideosByVideos(video, userId, users, videos, userMap, vid
             const disliked = uid.disliked;
             return liked.includes(videoId) ? 1 : disliked.includes(videoId) ? -1 : 0; // No interaction
         });
-        console.log(`VIDEO VECTOR = ${videoVector}`);
+        // console.log(`VIDEO VECTOR = ${videoVector}`);
 
         // Step 2: Calculate similarity with other videos using the `compute-cosine-similarity` library
         const similarityScores = [];
@@ -237,7 +197,7 @@ export function similarVideosByVideos(video, userId, users, videos, userMap, vid
 
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
-        console.log("SORTED Similarity Scores ==========>", similarityScores)
+        // console.log("SORTED Similarity Scores ==========>", similarityScores)
         
         // Step 4: Get recommended videos based on similar videos
         for (const { video: similarVideo } of similarityScores) {
@@ -261,7 +221,7 @@ export async function getRecommendation(mode, userId, videoId, count) {
     const recommendedVideos = new Set();
     const user = userMap[userId];
 
-    console.log(`Gathering Recommendation for user: ${user}`);
+    logger.info(`Gathering Recommendation for user: ${user}`);
 
     // Get similar videos by item based rec.
     if (mode === 'item-based') {
@@ -278,8 +238,8 @@ export async function getRecommendation(mode, userId, videoId, count) {
     // Wrap the video into videoList. Return videoList.
     const videoList = formatResponse(recommendedVideos, user);
 
-    console.log("SENDING VIDEO LIST =====");
-    console.log(videoList);
+    // console.log("SENDING VIDEO LIST =====");
+    // console.log(videoList);
 
     return videoList;
 }
