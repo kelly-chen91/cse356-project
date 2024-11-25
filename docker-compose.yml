@@ -11,6 +11,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+      GLIBC_TUNABLES: glibc.pthread.rseq=0
     # Scale up Mongodb
     volumes:
       - mongo-data:/data/db
