@@ -21,7 +21,7 @@ redis_client = None
 
 # Mongo client
 mongo_client = MongoClient(os.getenv("MONGO_URL"))
-logging.info("Connected to MongoDB!")
+# logging.info("Connected to MongoDB!")
 
 def processTask(task):
     """Process a single FFmpeg task."""
@@ -30,13 +30,13 @@ def processTask(task):
     
     # FFmpeg commands
     padCommand = f"""
-        ffmpeg -threads 1 -i "videos/{videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/{videoId}.mp4" -y
+        ffmpeg -threads 2 -i "videos/{videoName}" -vf "scale=w=iw*min(1280/iw\\,720/ih):h=ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2" -c:a copy "padded_videos/{videoId}.mp4" -y
     """
     thumbnailCommand = f"""
-        ffmpeg -threads 1 -i "padded_videos/{videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/{videoId}_thumbnail.jpg" -y
+        ffmpeg -threads 2 -i "padded_videos/{videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/{videoId}_thumbnail.jpg" -y
     """
     manifestCommand = f"""
-        ffmpeg -hide_banner -loglevel error -threads 1 -i "padded_videos/{videoId}.mp4" \
+        ffmpeg -hide_banner -loglevel error -threads 4 -i "padded_videos/{videoId}.mp4" \
         -map 0:v -b:v:0 512k -s:v:0 640x360 \
         -map 0:v -b:v:1 768k -s:v:1 960x540 \
         -map 0:v -b:v:2 1024k -s:v:2 1280x720 \
@@ -63,7 +63,7 @@ def processTask(task):
         videos = database.get_collection("videos")
         updateStatus = {"$set":{"status": "complete"}}
         res = videos.update_one({"_id": ObjectId(videoId)}, updateStatus)
-        logging.info(f'Successfully updated processing status: {res}')
+        # logging.info(f'Successfully updated processing status: {res}')
         
         logging.info(f'Processed Video ID: {videoId}, Video Name: {videoName}')
 
@@ -91,22 +91,13 @@ def worker():
         pubsub.subscribe('ffmpeg_tasks')
         
         logging.info(pubsub)
-        # while True:
         for message in pubsub.listen():
-            # task_data = redis_client.blpop("ffmpeg_tasks", timeout=10)
             if message['type']=='message': 
-                logging.info(f"message: {message}")
+                # logging.info(f"message: {message}")
                 task = json.loads(message['data'])
-                logging.info(f"Received task: {task}")
-                logging.info(f"VideoId: {task['videoId']}, VideoName {task['videoName']}")
+                # logging.info(f"Received task: {task}")
+                # logging.info(f"VideoId: {task['videoId']}, VideoName {task['videoName']}")
                 processTask(task)
-            # if message:
-            #     _, task_json = message
-            #     task = json.loads(task_json)
-            #     logging.info(f"Processing task: {task}")
-            #     # processTask(task)
-            # else:
-            #     logging.info("No tasks in the queue. Waiting...")
     except Exception as ex:
         logging.error(f"Worker error: {ex}")
         sys.exit(1)

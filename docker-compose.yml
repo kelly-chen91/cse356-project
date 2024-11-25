@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.8"
 
 services:
   # MongoDB
@@ -7,13 +7,13 @@ services:
     container_name: mongodb
     ports:
       - "27017:27017"
+    cpus: 2
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     # Scale up Mongodb
     volumes:
       - mongo-data:/data/db
-
   # SMTP Server
   mail:
     image: boky/postfix
@@ -55,6 +55,7 @@ services:
       - 80:80 # Reverse Proxying Node
       - 443:443
     volumes: # Storage can be either a
+      - /mnt/media:/etc/share/nginx/html/media
       - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
       - ./nginx/user_conf.d:/etc/nginx/user_conf.d # or a host mount with a relative or full path.
 

@@ -1,6 +1,13 @@
 import Video from "../models/videos.js";
 import User from "../models/users.js";
 import cosineSimilarity from "compute-cosine-similarity";
+import winston from "winston";
+const logger = winston.createLogger({
+    transports: [
+      new winston.transports.Console(), // Log to console
+      new winston.transports.File({ filename: 'app.log' }), // Log to file
+    ],
+  });
 
 /**
  * This is a function that makes query to the
@@ -95,7 +102,7 @@ function formatResponse(recommendedVideos, user) {
 }
 
 export function similarVideosByUser(users, videos, userMap, videoMap, userId, recommendedVideos, count) {
-    console.log(`Reached video-based for user ${userId}`);
+    // console.log(`Reached video-based for user ${userId}`);
 
     const user = userMap[userId];
 
@@ -106,7 +113,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
             const disliked = vid.dislikedBy;
             return liked.includes(userId) ? 1 : disliked.includes(userId) ? -1 : 0; // No interaction
         });
-        console.log(`USER VECTOR = ${userVector}`);
+        // console.log(`USER VECTOR = ${userVector}`);
 
         // Step 2: Calculate similarity with other users using the `compute-cosine-similarity` library
         const similarityScores = [];
@@ -131,7 +138,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
 
-        console.log("SORTED SIMILARITY SCORES ===========> ",similarityScores);
+        // console.log("SORTED SIMILARITY SCORES ===========> ",similarityScores);
 
         // Step 4: Get recommended videos based on similar users
         for (const { user: similarUser } of similarityScores) {
@@ -154,7 +161,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
 export function similarVideosByVideos(video, userId, users, videos, userMap, videoMap, recommendedVideos, count) {
     const videoId = video;
 
-    console.log(`Inside similar vid function ${videoId}`);
+    // console.log(`Inside similar vid function ${videoId}`);
 
     const user = userMap[userId];
 
@@ -165,7 +172,7 @@ export function similarVideosByVideos(video, userId, users, videos, userMap, vid
             const disliked = uid.disliked;
             return liked.includes(videoId) ? 1 : disliked.includes(videoId) ? -1 : 0; // No interaction
         });
-        console.log(`VIDEO VECTOR = ${videoVector}`);
+        // console.log(`VIDEO VECTOR = ${videoVector}`);
 
         // Step 2: Calculate similarity with other videos using the `compute-cosine-similarity` library
         const similarityScores = [];
@@ -190,7 +197,7 @@ export function similarVideosByVideos(video, userId, users, videos, userMap, vid
 
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
-        console.log("SORTED Similarity Scores ==========>", similarityScores)
+        // console.log("SORTED Similarity Scores ==========>", similarityScores)
         
         // Step 4: Get recommended videos based on similar videos
         for (const { video: similarVideo } of similarityScores) {
@@ -214,7 +221,7 @@ export async function getRecommendation(mode, userId, videoId, count) {
     const recommendedVideos = new Set();
     const user = userMap[userId];
 
-    console.log(`Gathering Recommendation for user: ${user}`);
+    logger.info(`Gathering Recommendation for user: ${user}`);
 
     // Get similar videos by item based rec.
     if (mode === 'item-based') {
@@ -231,8 +238,8 @@ export async function getRecommendation(mode, userId, videoId, count) {
     // Wrap the video into videoList. Return videoList.
     const videoList = formatResponse(recommendedVideos, user);
 
-    console.log("SENDING VIDEO LIST =====");
-    console.log(videoList);
+    // console.log("SENDING VIDEO LIST =====");
+    // console.log(videoList);
 
     return videoList;
 }
