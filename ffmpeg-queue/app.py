@@ -36,7 +36,7 @@ def processTask(task):
         ffmpeg -threads 2 -i "padded_videos/{videoId}.mp4" -vf 'scale=w=iw*min(320/iw\\,180/ih):h=ih*min(320/iw\\,180/ih),pad=320:180:(320-iw*min(320/iw\\,180/ih))/2:(180-ih*min(320/iw\\,180/ih))/2' -frames:v 1 "media/{videoId}_thumbnail.jpg" -y
     """
     manifestCommand = f"""
-        ffmpeg -hide_banner -loglevel error -threads 4 -i "padded_videos/{videoId}.mp4" \
+        ffmpeg -hide_banner -loglevel error -threads 2 -i "padded_videos/{videoId}.mp4" \
         -map 0:v -b:v:0 512k -s:v:0 640x360 \
         -map 0:v -b:v:1 768k -s:v:1 960x540 \
         -map 0:v -b:v:2 1024k -s:v:2 1280x720 \

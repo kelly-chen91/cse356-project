@@ -11,7 +11,7 @@ const jsonPath = path.resolve("../m2.json");
 const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 
 mongoose
-  .connect("mongodb://root:example@localhost:27017/warmup?authsource=admin", {
+  .connect("mongodb://root:example@mongodb:27017/warmup?authsource=admin", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
