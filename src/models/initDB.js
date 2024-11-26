@@ -16,40 +16,6 @@ async function createUserCollection() {
     // Set up validation rules (schema) for the "users" collection
     await db.command({
       collMod: "users",
-      validator: {
-        $jsonSchema: {
-          bsonType: "object",
-          required: ["username", "email", "pwhash"],
-          properties: {
-            username: { bsonType: "string", description: "must be a string and is required" },
-            email: { bsonType: "string", description: "must be a string and is required" },
-            pwhash: { bsonType: "string", description: "must be a string and is required" },
-            verificationKey: { bsonType: "string", description: "optional string" },
-            verified: { bsonType: "bool", description: "optional boolean" },
-            videos: {
-              bsonType: ["array"],
-              items: { bsonType: "string" },
-              description: "optional array of strings",
-            },
-            liked: {
-              bsonType: ["array"],
-              items: { bsonType: "string" },
-              description: "optional array of strings",
-            },
-            disliked: {
-              bsonType: ["array"],
-              items: { bsonType: "string" },
-              description: "optional array of strings",
-            },
-            watched: {
-              bsonType: ["array"],
-              items: { bsonType: "string" },
-              description: "optional array of strings",
-            },
-          },
-        },
-      },
-      validationLevel: "moderate",
     });
 
     // Create compound and text indexes
