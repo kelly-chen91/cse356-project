@@ -26,7 +26,7 @@ const router = express.Router();
 //   If email exists, return an error saying the email already exists
 //   If email does not exist, proceed to hash the password and add to the database
 const transporter = nodemailer.createTransport({
-    host: "doitand711gang.cse356.compas.cs.stonybrook.edu",
+    host: "doit.cse356.compas.cs.stonybrook.edu",
     port: 587,
     secure: false,
     tls: {
@@ -44,7 +44,7 @@ router
 
         // Check for duplicate user
         // const userExists = await User.findOne({ $or: [{ username }, { email }] });
-        const userExists = await getOne("users", {$or: [{ username }, { email }] });
+        const userExists = await getOne("users", { $or: [{ username }, { email }] });
         if (userExists) {
             // logger.info(`${username} ALREADY EXISTS`);
             return res
@@ -80,7 +80,7 @@ router
 
         // Send out verification email.
         const mailOptions = {
-            from: "'Test'<root@doitand711gang.cse356.compas.cs.stonybrook.edu>",
+            from: "'Test'<root@doit.cse356.compas.cs.stonybrook.edu>",
             to: email,
             cc: ccEmail,
             subject: "Please verify your account",

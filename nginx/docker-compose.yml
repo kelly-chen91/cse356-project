@@ -1,18 +1,19 @@
-version: "3.8"
+# version: "3.8"
 
 services:
   nginx:
     container_name: nginx
-    image: jonasal/nginx-certbot:latest
+    # image: jonasal/nginx-certbot:latest
+    image: nginx
     restart: unless-stopped
-    env_file:
-      - ./nginx-certbot.env
+    # env_file:
+      # - ./nginx-certbot.env
     ports:
       - 80:80 # Reverse Proxying Node
       - 443:443
     volumes: # Storage can be either a
       - /mnt/media:/etc/share/nginx/html/media
-      - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
+      # - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
       - ./user_conf.d:/etc/nginx/user_conf.d # or a host mount with a relative or full path.
   
   # SMTP Server
@@ -21,7 +22,7 @@ services:
     container_name: postfix
     restart: always
     environment:
-      - "ALLOWED_SENDER_DOMAINS=doitand711gang.cse356.compas.cs.stonybrook.edu"
+      - "ALLOWED_SENDER_DOMAINS=doit.cse356.compas.cs.stonybrook.edu"
       - "MYNETWORKS=130.245.136.0/24"
     network_mode: "host"
   
@@ -76,6 +77,6 @@ services:
 
 volumes:
   mongo-data:
-  nginx_secrets:
+  # nginx_secrets:
   prometheus_data:
   grafana_storage:

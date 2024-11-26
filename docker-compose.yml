@@ -7,7 +7,7 @@ services:
     container_name: postfix
     restart: always
     environment:
-      - "ALLOWED_SENDER_DOMAINS=doitand711gang.cse356.compas.cs.stonybrook.edu"
+      - "ALLOWED_SENDER_DOMAINS=doit.cse356.compas.cs.stonybrook.edu"
       - "MYNETWORKS=130.245.136.0/24"
     network_mode: "host"
 
