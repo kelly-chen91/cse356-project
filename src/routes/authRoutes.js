@@ -43,7 +43,8 @@ router
             "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
         // Check for duplicate user
-        const userExists = await User.findOne({ $or: [{ username }, { email }] });
+        // const userExists = await User.findOne({ $or: [{ username }, { email }] });
+        const userExists = await getOne("users", {$or: [{ username }, { email }] });
         if (userExists) {
             // logger.info(`${username} ALREADY EXISTS`);
             return res

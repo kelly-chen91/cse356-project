@@ -113,8 +113,10 @@ router
 
         try {
             const user = await getOne("users", { _id: new ObjectId(uid) })
-            const video = await getOne("videos", { "videoId": id })
+            // const videoId = new ObjectId(id);
+            const video = await getOne("videos", { videoId: id })
 
+            logger.info(`what is video ${video} with id ${id}`);
             const liked = user.liked.includes(id);
             const disliked = user.disliked.includes(id);
 
@@ -209,13 +211,16 @@ router
         const videoId = new ObjectId();
         const newVideo = {
             _id: videoId,
-            videoId: videoId,
+            videoId: videoId.toString(),
             author: author,
             title: title,
             description: description,
             status: "processing",
             manifest: `${videoName}_output.mpd`,
             thumbnail: `${videoName}_thumbnail.jpg`,
+            likedBy: [],
+            dislikedBy: [],
+            likes: 0
         }
         await insertOne("videos", newVideo)
         // const videoId = video._id;
@@ -226,12 +231,12 @@ router
         //   { $push: { videos: videoId } },
         //   { new: true }
         // );
-        await updateOne("users", { _id: new ObjectId(req.session.userId) }, { $push: { videos: videoId } })
+        await updateOne("users", { _id: new ObjectId(req.session.userId) }, { $push: { videos: videoId.toString() } })
 
         res.status(200).json({ status: "OK", id: videoId });
 
         // //Insert Redis queue here
-        const task = JSON.stringify({ videoName: videoName, videoId: videoId });
+        const task = JSON.stringify({ videoName: videoName, videoId: videoId.toString() });
         // logger.info("what is task ==== ", task)
         taskQueue.publish("ffmpeg_tasks", task, (err) => {
             if (err) {
@@ -279,14 +284,14 @@ router
         // logger.info(`THIS IS REQ BODY FOR VIEW: ${req.body}`);
         // logger.info(`THIS IS REQ BODY FOR VIEW: ${JSON.stringify(req.body)}`);
         const { id } = req.body;
-        // logger.info("id ===", id);
+        logger.info(`id === ${id}`);
         // Check if user has seen video before
 
-        const user = await getOne("users", { _id: new ObjectId(uid) })
-
+        const user = await getOne("users", { _id: new ObjectId(uid) });
+          
         const targetVid = await getOne("videos", { "videoId": id })
 
-        // logger.info("Video found from id: ", targetVid);
+        logger.info(`Video found from id: , ${targetVid}`);
         // logger.info(`User watched ${user.watched}`);
         const foundVideo = user.watched.includes(targetVid.videoId);
         let previouslyWatched = false;

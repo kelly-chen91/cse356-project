@@ -37,7 +37,7 @@ app.use(
     secret: "supersecret difficult to guess string",
     cookie: { httpOnly: true, maxAge: 100 * 60 * 60 * 10000000000 },
     resave: false,
-    saveUninitialize: false,
+    saveUninitialized: true,
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URL }),
   })
 );

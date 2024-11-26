@@ -114,6 +114,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
         // Step 1: Prepare the user's preference vector
         const userVector = videos.map((vid) => {
             const liked = vid.likedBy;
+            logger.info(liked)
             const disliked = vid.dislikedBy;
             return liked.includes(userId) ? 1 : disliked.includes(userId) ? -1 : 0; // No interaction
         });
@@ -225,7 +226,7 @@ export async function getRecommendation(mode, userId, videoId, count) {
     const recommendedVideos = new Set();
     const user = userMap[userId];
 
-    logger.info(`Gathering Recommendation for user: ${user}`);
+    logger.info(`Gathering Recommendation for user: ${user} with ${userId}`);
 
     // Get similar videos by item based rec.
     if (mode === 'item-based') {

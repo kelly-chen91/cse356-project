@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 dotenv.config();
 import mongoose from "mongoose";
+import { loggers } from "winston";
 
 const client = new MongoClient(process.env.MONGO_URL);
 
@@ -23,7 +24,16 @@ const getAll = async (collection) => {
  */
 const getOne = async (collection, filter) => {
   const col = database.collection(collection);
-  return await col.findOne(filter);
+  // console.log(`What is col:  ${col}, filter: ${JSON.stringify(filter)}`)
+
+  // const video = await database.collection("videos").findOne({
+  //   videoId: new ObjectId("67456a89cc59efef579121d8"),
+  // });
+  // console.log("Direct query with hardcoded ObjectId result:", video);
+  const res = await col.findOne(filter);
+  console.log(`Query result: ${JSON.stringify(res)} with filter: ${JSON.stringify(filter)}`);
+
+  return res;
 }
 
 // Insert User, Video
@@ -36,14 +46,22 @@ const insertOne = async (collection, data) => {
 // Update
 const updateOne = async (collection, filter, data) => {
   const col = database.collection(collection);
-  return await col.updateOne(filter, data, {writeConcern: {w:0, wtimeout: 10000}})
+  return await col.updateOne(filter, data, {writeConcern: {w:replicas, wtimeout: 10000}})
 }
 
 
-const createIndex = async (collection, indexField, options = {}) => {
-  const col = database.collection(collection);
-  return await col.createIndex(indexField, options);
-};
+// const createIndex = async (collection, indexField, options = {}) => {
+//   const col = database.collection(collection);
+//   return await col.createIndex(indexField, options);
+// };
+
+const ensureIndex = async (collectionName, indexSpec, options = {}) => {
+  const col = database.collection(collectionName);
+
+  await col.dropIndexes(); // Drop the index
+  await col.createIndex(indexSpec, options); // Recreate it
+
+};  
 
 const connectDB = async () => {
   // try {
@@ -59,12 +77,12 @@ const connectDB = async () => {
   //   process.exit(1);
   // }
   try {
-    await client.connect(); 
+    // await client.connect(); 
 
-    await createIndex("videos", {videoId: 1}, {unique: true});
+    await ensureIndex("videos", {videoId: 1}, {unique: true});
     console.log("Index created on videoID in videos collection");
   } catch (error) { 
-    console.error("Failed to initialize database.");
+    console.error("Failed to initialize database. Error:", error);
   }
   
 };
