@@ -40,9 +40,9 @@ services:
     env_file:
       - .env
     depends_on:
-      - mail
+      # - mail
       - mongodb
-      - nginx
+      # - nginx
 
   nginx:
     container_name: nginx

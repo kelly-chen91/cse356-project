@@ -206,8 +206,10 @@ router
         //   manifest: `${videoName}_output.mpd`,
         //   thumbnail: `${videoName}_thumbnail.jpg`,
         // });
-
+        const videoId = new ObjectId();
         const newVideo = {
+            _id: videoId,
+            videoId: videoId,
             author: author,
             title: title,
             description: description,
@@ -215,8 +217,8 @@ router
             manifest: `${videoName}_output.mpd`,
             thumbnail: `${videoName}_thumbnail.jpg`,
         }
-        const video = await insertOne("videos", newVideo)
-        const videoId = video._id;
+        await insertOne("videos", newVideo)
+        // const videoId = video._id;
 
         // await newVideo.save();
         // await User.findByIdAndUpdate(
@@ -228,7 +230,7 @@ router
 
         res.status(200).json({ status: "OK", id: videoId });
 
-        //Insert Redis queue here
+        // //Insert Redis queue here
         const task = JSON.stringify({ videoName: videoName, videoId: videoId });
         // logger.info("what is task ==== ", task)
         taskQueue.publish("ffmpeg_tasks", task, (err) => {

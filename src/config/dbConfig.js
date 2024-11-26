@@ -36,22 +36,37 @@ const insertOne = async (collection, data) => {
 // Update
 const updateOne = async (collection, filter, data) => {
   const col = database.collection(collection);
-  return await col.updateOne(filter, data, {writeConcern: {w:replicas, wtimeout: 10000}})
+  return await col.updateOne(filter, data, {writeConcern: {w:0, wtimeout: 10000}})
 }
 
+
+const createIndex = async (collection, indexField, options = {}) => {
+  const col = database.collection(collection);
+  return await col.createIndex(indexField, options);
+};
+
 const connectDB = async () => {
+  // try {
+  //   await mongoose.connect(process.env.MONGO_URL, {
+  //     useNewUrlParser: true,
+  //     useUnifiedTopology: true,
+  //     // poolSize: 25,
+  //     // maxPoolSize: 50,
+  //   });
+  //   console.log("MongoDB connected");
+  // } catch (error) {
+  //   console.error("MongoDB connection failed:", error);
+  //   process.exit(1);
+  // }
   try {
-    await mongoose.connect(process.env.MONGO_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      // poolSize: 25,
-      // maxPoolSize: 50,
-    });
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.error("MongoDB connection failed:", error);
-    process.exit(1);
+    await client.connect(); 
+
+    await createIndex("videos", {videoId: 1}, {unique: true});
+    console.log("Index created on videoID in videos collection");
+  } catch (error) { 
+    console.error("Failed to initialize database.");
   }
+  
 };
 
 export { connectDB, getAll, getOne, insertOne, updateOne };
