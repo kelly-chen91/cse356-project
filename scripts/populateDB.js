@@ -4,6 +4,7 @@ import Video from "../src/models/videos.js";
 import User from "../src/models/users.js";
 import path from "path";
 import dotenv from "dotenv";
+import { ObjectId } from "mongodb";
 dotenv.config();
 
 const jsonPath = path.resolve("../m2.json");
@@ -24,6 +25,8 @@ mongoose
       console.log(`${key}: ${jsonData[key]}`);
       const title = key.split(".")[0];
       const desc = jsonData[key];
+      
+      // const videoId = new ObjectId();
       const newVideo = new Video({
         videoId: title,
         title: title,
