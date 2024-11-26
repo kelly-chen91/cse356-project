@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  nginx:
+    container_name: nginx
+    image: jonasal/nginx-certbot:latest
+    restart: unless-stopped
+    env_file:
+      - ./nginx-certbot.env
+    ports:
+      - 80:80 # Reverse Proxying Node
+      - 443:443
+    volumes: # Storage can be either a
+      - /mnt/media:/etc/share/nginx/html/media
+      - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
+      - ./user_conf.d:/etc/nginx/user_conf.d # or a host mount with a relative or full path.
+  
+  # SMTP Server
+  mail:
+    image: boky/postfix
+    container_name: postfix
+    restart: always
+    environment:
+      - "ALLOWED_SENDER_DOMAINS=doitand711gang.cse356.compas.cs.stonybrook.edu"
+      - "MYNETWORKS=130.245.136.0/24"
+    network_mode: "host"
+  
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    ports:
+      - 9100:9100
+
+  mdb_exporter:
+    image: percona/mongodb_exporter:0.42.0
+    restart: unless-stopped
+    command:
+      - '--mongodb.uri=mongodb://root:example@mongodb:27017'  # Adjust the URI with correct credentials
+      - '--collect-all'
+    ports:
+      - 9216:9216  # Map Prometheus exporter port
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: unless-stopped
+    volumes:
+      - grafana_storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+
+
+volumes:
+  mongo-data:
+  nginx_secrets:
+  prometheus_data:
+  grafana_storage:
