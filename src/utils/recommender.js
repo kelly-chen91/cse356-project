@@ -1,7 +1,7 @@
-import Video from "../models/videos.js";
-import User from "../models/users.js";
 import cosineSimilarity from "compute-cosine-similarity";
 import winston from "winston";
+import { getAll, insertOne } from "../config/dbConfig.js"
+
 const logger = winston.createLogger({
     transports: [
       new winston.transports.Console(), // Log to console
@@ -15,10 +15,13 @@ const logger = winston.createLogger({
  */
 async function getVideosUsersMap() {
     // Cache all users and videos at once
-    const [users, videos] = await Promise.all([
-        User.find({}).exec(),
-        Video.find({}).exec(),
-    ]);
+    const users = await getAll("users")
+    const videos = await getAll("videos")
+    // const [users, videos] = await Promise.all([
+    //     User.find({}).exec(),
+    //     Video.find({}).exec(),
+    // ]);
+    
     const userMap = users.reduce(
         (map, user) => ((map[user._id] = user), map),
         {}
@@ -38,6 +41,7 @@ async function getVideosUsersMap() {
  * @returns list of recommended videos.
  */
 function fallback_unwatched(recommendedVideos, videos, user, count) {
+    // logger.info(user)
     const unwatchedVideos = videos.filter(
         (vid) => !user.watched.includes(vid.videoId) && vid.status !== "processing"
     );

@@ -3,12 +3,13 @@ import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import User from "../models/users.js";
 import winston from "winston";
+import { getOne, insertOne, updateOne } from "../config/dbConfig.js"
 const logger = winston.createLogger({
     transports: [
-      new winston.transports.Console(), // Log to console
-      new winston.transports.File({ filename: 'app.log' }), // Log to file
+        new winston.transports.Console(), // Log to console
+        new winston.transports.File({ filename: 'app.log' }), // Log to file
     ],
-  });
+});
 
 const router = express.Router();
 
@@ -38,10 +39,6 @@ router
     .post("/api/adduser", async (req, res) => {
         logger.info("/adduser");
         let { username, password, email } = req.body;
-        // logger.info(`BEFORE EMAIL===== ${email}`);
-
-        // email = encodeURI(email).replace(/%20/g, "+");
-        // logger.info(`EMAIL===== ${email}, PASSWORD ==== ${password}`);
         const ccEmail =
             "kelly.chen.6@stonybrook.edu, zhenting.ling@stonybrook.edu, mehadi.chowdhury@stonybrook.edu";
 
@@ -57,15 +54,28 @@ router
         // Create the new user.
         const verificationKey = "supersecretkey";
         const pwhash = await bcrypt.hash(password, 10);
-        const newUser = new User({
+        // const newUser = new User({
+        //     username: username,
+        //     email: email,
+        //     pwhash: pwhash,
+        //     verificationKey: verificationKey,
+        //     verified: false,
+        // });
+        // await newUser.save();
+
+        const newUser = {
             username: username,
             email: email,
             pwhash: pwhash,
             verificationKey: verificationKey,
             verified: false,
-        });
-        await newUser.save();
-        logger.info(`${username} CREATED with id ${newUser._id}`);
+            liked: [],
+            disliked: [],
+            watched: []
+        }
+        const user = await insertOne("users", newUser);
+
+        logger.info(`${username} CREATED with id ${user.insertedId}`);
 
         // Send out verification email.
         const mailOptions = {
@@ -99,8 +109,9 @@ router
         logger.info("/api/login");
         const { username, password } = req.body;
 
-        const user = await User.findOne({ username });
-        // logger.info(user);
+        // const user = await User.findOne({ username });
+        const user = await getOne("users", { username });
+        logger.info(user);
         // logger.info(req.cookies);
         if (!user || !(await bcrypt.compare(password, user.pwhash))) {
             return res
@@ -137,22 +148,15 @@ router
         logger.info("/verify");
         // console.table(req.query);
         email = encodeURI(email).replace(/%20/g, "+");
-        const data = await User.findOne({ email });
+        // const data = await User.findOne({ email });
+        const data = await getOne("users", { email });
 
         if (!data)
             return res
                 .status(200)
                 .json({ status: "ERROR", error: true, message: "User not found" });
-        // logger.info("user found");
-        // If user's verification key is correct, we log the user in and redirect them to home page
-        // If it is not correct, we redirect to login page
-        // if (key !== data.verificationKey) {
-        //     res.sendFile(
-        //         __dirname +
-        //         "/root/cse356-project/milestone1/src/public/components/LoginPage.html"
-        //     );
-        // } else {
-        const user = await User.updateOne({ _id: data._id }, { verified: true });
+
+        const user = await updateOne("users", { _id: data._id }, { $set: { verified: true } });
         // logger.info(user);
         //     // Generate Session here
         //     req.session.userId = user._id;

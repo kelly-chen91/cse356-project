@@ -183,7 +183,7 @@
             likeBtn.classList.add("likeDislikeBtn");
             likeBtn.innerHTML = "Like";
             likeBtn.name = "like";
-            
+
             const dislikeBtn = document.createElement("button");
             dislikeBtn.classList.add("likeDislikeBtn");
             dislikeBtn.innerHTML = "Dislike";
@@ -191,7 +191,7 @@
 
             likeBtn.addEventListener("click", () => {
                 fetch(
-                    "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
+                    "https://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
                     {
                         method: "POST",
                         headers: {
@@ -206,7 +206,7 @@
 
             dislikeBtn.addEventListener("click", () => {
                 fetch(
-                    "http://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
+                    "https://doitand711gang.cse356.compas.cs.stonybrook.edu/api/like",
                     {
                         method: "POST",
                         headers: {
@@ -247,7 +247,7 @@
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ videoId: {id: currentVideoId}, count: count }),
+                body: JSON.stringify({ videoId: { id: currentVideoId }, count: count }),
             })
                 .then((response) => response.json())
                 .then((data) => {
