@@ -1,20 +1,6 @@
 version: "3.8"
 
 services:
-  # MongoDB
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    cpus: 2
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-      GLIBC_TUNABLES: glibc.pthread.rseq=0
-    # Scale up Mongodb
-    volumes:
-      - mongo-data:/data/db
   # SMTP Server
   mail:
     image: boky/postfix
@@ -29,8 +15,8 @@ services:
   node:
     # container_name: node
     build: .
-    # ports:
-    #   - "80:80"
+    ports:
+      - "80:80"
     volumes:
       - ./src:/app/src # Mount your local directory to the container
       - /mnt/media:/app/media # Mounting the mounted volume to the container.
@@ -39,26 +25,6 @@ services:
       - ./videos:/app/videos
     env_file:
       - .env
-    depends_on:
-      # - mail
-      - mongodb
-      # - nginx
-
-  nginx:
-    container_name: nginx
-    image: jonasal/nginx-certbot:latest
-    restart: unless-stopped
-    # environment:
-    #   - CERTBOT_EMAIL=kelly.chen.6@stonybrook.edu
-    env_file:
-      - ./nginx/nginx-certbot.env
-    ports:
-      - 80:80 # Reverse Proxying Node
-      - 443:443
-    volumes: # Storage can be either a
-      - /mnt/media:/etc/share/nginx/html/media
-      - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
-      - ./nginx/user_conf.d:/etc/nginx/user_conf.d # or a host mount with a relative or full path.
 
   # Redis for Message Queue
   redis:
@@ -92,63 +58,12 @@ services:
     volumes:
       - ./ffmpeg-queue/:/usr/src/app/
       - /mnt/media:/usr/src/app/media # Mounting the mounted volume to the container.
-      # - ./media:/app/media 
       - ./padded_videos:/usr/src/app/padded_videos
       - ./videos:/usr/src/app/videos
     depends_on:
       - redis
-      - mongodb
     env_file: 
       - .env
-  
-  node_exporter:
-    image: quay.io/prometheus/node-exporter:latest
-    container_name: node_exporter
-    command:
-      - '--path.rootfs=/host'
-    pid: host
-    restart: unless-stopped
-    volumes:
-      - '/:/host:ro,rslave'
-    ports:
-      - 9100:9100
-
-  mdb_exporter:
-    image: percona/mongodb_exporter:0.42.0
-    restart: unless-stopped
-    command:
-      - '--mongodb.uri=mongodb://root:example@mongodb:27017'  # Adjust the URI with correct credentials
-      - '--collect-all'
-    ports:
-      - 9216:9216  # Map Prometheus exporter port
-
-  grafana:
-    container_name: grafana
-    image: grafana/grafana
-    restart: unless-stopped
-    volumes:
-      - grafana_storage:/var/lib/grafana
-    depends_on:
-      - prometheus
-    ports:
-      - 3000:3000
-
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    restart: unless-stopped
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    ports:
-      - 9090:9090
-
 
 volumes:
   mongo-data:
