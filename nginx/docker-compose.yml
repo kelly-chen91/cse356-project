@@ -73,6 +73,25 @@ services:
     ports:
       - 9090:9090
 
+  # Redis for Message Queue
+  redis:
+    container_name: redis
+    image: redis
+    restart: unless-stopped
+
+  ffmpeg-queue:
+    container_name: ffmpeg-queue
+    build: ./ffmpeg-queue/
+    volumes:
+      - ./ffmpeg-queue/:/usr/src/app/
+      - /mnt/media:/usr/src/app/media # Mounting the mounted volume to the container.
+      - ./padded_videos:/usr/src/app/padded_videos
+      - ./videos:/usr/src/app/videos
+    depends_on:
+      - redis
+    env_file: 
+      - .env
+
 
 volumes:
   mongo-data:
