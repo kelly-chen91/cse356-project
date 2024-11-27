@@ -15,6 +15,8 @@ const logger = winston.createLogger({
     ],
 });
 
+// 50 x 800 matrix
+// users x videos
 
 // Setup Multer
 const storage = multer.diskStorage({
@@ -107,71 +109,35 @@ router
             });
         }
 
-        // Update video information.
         const { id, value } = req.body;
 
+        const video = await getOne("videos", { videoId: id })
+        const likeValue = value ? 1 : -1;
+        let num_likes = video.likes;
 
-        try {
-            const user = await getOne("users", { _id: new ObjectId(uid) })
-            // const videoId = new ObjectId(id);
-            const video = await getOne("videos", { videoId: id })
-
-            logger.info(`what is video ${video} with id ${id}`);
-            const liked = user.liked.includes(id);
-            const disliked = user.disliked.includes(id);
-
-            if ((value && liked) || (!value && disliked)) {
-                logger.info("The value that you want to set is the same");
-                return res.status(200).json({
-                    status: "ERROR",
-                    error: true,
-                    message: "The value that you want to set is the same",
-                });
-            }
-
-            if (value) {
-                if (disliked) {
-                    // user.disliked.pull(id);
-                    await updateOne("users", { _id: user._id }, { $pull: { disliked: id } })
-                    //   await User.findByIdAndUpdate(uid, {$pull: {disliked: id}});
-                    // video.dislikedBy.pull(user._id);
-                    await updateOne("videos", { "videoId": id }, { $pull: { dislikedBy: uid } })
-                    //   video = await Video.findOneAndUpdate({videoId: id}, {$pull: {dislikedBy: uid}});
-                }
-                // user.liked.push(id);
-                await updateOne("users", { _id: user._id }, { $push: { liked: id } })
-                // await User.findByIdAndUpdate(uid, {$push: {liked: id}});
-
-                await updateOne("videos", { "videoId": id }, { $inc: { likes: 1 } })
-
-                // video = await Video.findOneAndUpdate({videoId: id}, {$inc: {likes: 1}});
-            } else {
-                if (liked) {
-                    // user.liked.pull(id);
-                    await updateOne("users", { _id: user._id }, { $pull: { liked: id } })
-                    //   await User.findByIdAndUpdate(uid, {$pull: {liked: id}})
-                    // video.likes -= 1;
-                    await updateOne("videos", { "videoId": id }, { $inc: { likes: -1 } })
-                    //   video = await Video.findOneAndUpdate({videoId: id}, {$inc: {likes: -1}})
-                }
-                // user.disliked.push(id);
-                await updateOne("users", { _id: user._id }, { $push: { disliked: id } })
-                // await User.findByIdAndUpdate(uid, {$push: {disliked: id}})
-                // video.dislike
-            }
-
-            // logger.info("Video likes after:", video.likes);
-
-
-            res.status(200).json({ status: "OK", likes: video.likes });
-        } catch (error) {
-            // logger.error(error);
-            res.status(200).json({
+        const prevFeedback = await getOne("feedbacks", { userId: uid, videoId: id })
+        if (prevFeedback && prevFeedback.value === likeValue) { // User has already interacted with video
+            logger.info("The value that you want to set is the same");
+            return res.status(200).json({
                 status: "ERROR",
                 error: true,
-                message: "An error occurred while updating like status",
+                message: "The value that you want to set is the same",
             });
         }
+
+        if (prevFeedback) { // Switch value
+            updateOne("feedbacks", { userId: uid, videoId: id }, { $set: { value: likeValue } })
+        }
+
+        const feedback = { userId: uid, videoId: id, value: likeValue }
+        insertOne("feedbacks", feedback)
+
+        if (value) {
+            updateOne("videos", { "videoId": id }, { $inc: { likes: 1 } })
+            num_likes += 1
+        }
+
+        res.status(200).json({ status: "OK", likes: num_likes });
     })
     .post("/api/upload", upload.single("mp4File"), async (req, res) => {
         logger.info("Reached api/upload");
@@ -184,10 +150,6 @@ router
 
         const { author, title, description } = req.body;
         const mp4File = req.file;
-        // logger.info("body:", req.body);
-        // logger.info("mp4File:", mp4File.filename);
-
-        // SKIBIDI WAS HERE :3
 
         if (!author || !title || !description || !mp4File) {
             logger.info("ERR");
@@ -200,14 +162,6 @@ router
 
         const videoName = mp4File.originalname;
 
-        // const newVideo = new Video({
-        //   author: author,
-        //   title: title,
-        //   description: description,
-        //   status: "processing",
-        //   manifest: `${videoName}_output.mpd`,
-        //   thumbnail: `${videoName}_thumbnail.jpg`,
-        // });
         const videoId = new ObjectId();
         const newVideo = {
             _id: videoId,

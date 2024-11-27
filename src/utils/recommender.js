@@ -202,7 +202,6 @@ export function similarVideosByVideos(video, userId, users, videos, userMap, vid
 
         // Step 3: Sort users by similarity in descending order
         similarityScores.sort((a, b) => b.similarity - a.similarity);
-        // console.log("SORTED Similarity Scores ==========>", similarityScores)
         
         // Step 4: Get recommended videos based on similar videos
         for (const { video: similarVideo } of similarityScores) {
@@ -226,7 +225,7 @@ export async function getRecommendation(mode, userId, videoId, count) {
     const recommendedVideos = new Set();
     const user = userMap[userId];
 
-    logger.info(`Gathering Recommendation for user: ${user} with ${userId}`);
+    // logger.info(`Gathering Recommendation for user: ${user} with ${userId}`);
 
     // Get similar videos by item based rec.
     if (mode === 'item-based') {
