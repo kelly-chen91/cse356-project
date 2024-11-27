@@ -77,14 +77,30 @@ services:
     container_name: ffmpeg-queue
     build: ../ffmpeg-queue/
     volumes:
-      - ./ffmpeg-queue/:/usr/src/app/
+      - ../ffmpeg-queue/:/usr/src/app/
       - /mnt/media:/usr/src/app/media # Mounting the mounted volume to the container.
       - ./padded_videos:/usr/src/app/padded_videos
       - ./videos:/usr/src/app/videos
-    # depends_on:
-    #   - redis
+    depends_on:
+      - redis
     env_file: 
       - ../.env
+
+  # Redis for Message Queue
+  redis:
+    container_name: redis
+    image: redis
+    restart: unless-stopped
+
+  # SMTP Server
+  mail:
+    image: boky/postfix
+    container_name: postfix
+    restart: always
+    environment:
+      - "ALLOWED_SENDER_DOMAINS=doit.cse356.compas.cs.stonybrook.edu"
+      - "MYNETWORKS=130.245.136.0/24"
+    network_mode: "host"
 
 volumes:
   mongo-data:

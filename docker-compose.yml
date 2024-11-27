@@ -1,15 +1,6 @@
 # version: "3.8"
 
 services:
-  # SMTP Server
-  mail:
-    image: boky/postfix
-    container_name: postfix
-    restart: always
-    environment:
-      - "ALLOWED_SENDER_DOMAINS=doit.cse356.compas.cs.stonybrook.edu"
-      - "MYNETWORKS=130.245.136.0/24"
-    network_mode: "host"
 
   # NodeJS
   node:
@@ -26,18 +17,18 @@ services:
     env_file:
       - .env
 
-  # Redis for Message Queue
-  redis:
-    container_name: redis
-    image: redis
-    restart: unless-stopped
+  # # Redis for Message Queue
+  # redis:
+  #   container_name: redis
+  #   image: redis
+  #   restart: unless-stopped
 
-  # Memcache for videos rec.
-  memcached:
-    container_name: memcache
-    image: memcached:latest
-    ports:
-      - "11211:11211"
+  # # Memcache for videos rec.
+  # memcached:
+  #   container_name: memcache
+  #   image: memcached:latest
+  #   ports:
+  #     - "11211:11211"
 
   # recommender:
   #     container_name: recommender
@@ -60,9 +51,3 @@ services:
   #   #   - redis
   #   env_file: 
   #     - .env
-
-volumes:
-  mongo-data:
-  nginx_secrets:
-  prometheus_data:
-  grafana_storage:

@@ -1,13 +1,14 @@
-project_dir: /root/cse356-project/
 - name: Set up Express
   hosts: node
+  vars_files:
+    - vars/main.yaml
   become: yes
   become_method: sudo
   remote_user: root
 
   tasks:
     - import_tasks: tasks/installDocker.yaml
-    - import_tasks: task/cloneRepository.yaml
+    - import_tasks: tasks/cloneRepository.yaml
     - name: Compose Down 
       ansible.builtin.command: docker compose -f {{project_dir}}/docker-compose.yml down
 
