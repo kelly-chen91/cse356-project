@@ -8,11 +8,11 @@ import dotenv from "dotenv";
 import winston from "winston";
 
 const logger = winston.createLogger({
-    transports: [
-      new winston.transports.Console(), // Log to console
-      new winston.transports.File({ filename: 'app.log' }), // Log to file
-    ],
-  });
+  transports: [
+    new winston.transports.Console(), // Log to console
+    new winston.transports.File({ filename: 'app.log' }), // Log to file
+  ],
+});
 dotenv.config();
 
 // Getting project modules.
@@ -66,7 +66,7 @@ app.use("/", videoRoutesRouter);
 
 // Placeholder for routes and server logic
 app.get("/", (req, res) => {
-  logger.info("root path...");
+  // logger.info("root path...");
 
   if (!req.session.userId) {
     // User not logged in, send to login page
@@ -88,7 +88,7 @@ app.get("/play/:id", (req, res) => {
       .json({ status: "ERROR", error: true, message: "User not logged in" });
 
   const id = req.params.id;
-  logger.info("Reached /play/:id => id =", id);
+  // logger.info("Reached /play/:id => id =", id);
 
   res.sendFile(playPage);
 });

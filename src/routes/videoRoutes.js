@@ -6,12 +6,11 @@ import path from "path";
 import { getRecommendation } from "../utils/recommender.js";
 import { getOne, insertOne, updateOne } from "../config/dbConfig.js"
 import { ObjectId } from "mongodb";
-
 import winston from "winston";
 const logger = winston.createLogger({
     transports: [
         new winston.transports.Console(), // Log to console
-        new winston.transports.File({ filename: 'app.log' }), // Log to file
+        // new winston.transports.File({ filename: 'app.log' }), // Log to file
     ],
 });
 
@@ -42,7 +41,7 @@ const router = express.Router();
 
 router
     .post("/api/videos", async (req, res) => {
-        logger.info("reached /api/videos");
+        // logger.info("reached /api/videos");
         const { videoId, count } = req.body;
         const userId = req.session.userId;
 
@@ -97,7 +96,7 @@ router
     //     res.sendFile(`${mediaPath}/${id}`);
     // })
     .post("/api/like", async (req, res) => {
-        logger.info("Reached /api/like ....");
+        // logger.info("Reached /api/like ....");
         // Check if user is currently logged in
         const uid = req.session.userId;
         if (!uid) {
@@ -122,7 +121,7 @@ router
             const disliked = user.disliked.includes(id);
 
             if ((value && liked) || (!value && disliked)) {
-                logger.info("The value that you want to set is the same");
+                // logger.info("The value that you want to set is the same");
                 return res.status(200).json({
                     status: "ERROR",
                     error: true,
@@ -175,7 +174,7 @@ router
         }
     })
     .post("/api/upload", upload.single("mp4File"), async (req, res) => {
-        logger.info("Reached api/upload");
+        // logger.info("Reached api/upload");
 
         if (!req.session.userId) {
             return res
@@ -237,7 +236,7 @@ router
         });
     })
     .get("/api/processing-status", async (req, res) => {
-        logger.info("Reached api/processing-status");
+        // logger.info("Reached api/processing-status");
 
         if (!req.session.userId) {
             return res
@@ -273,11 +272,11 @@ router
         // logger.info(`THIS IS REQ BODY FOR VIEW: ${req.body}`);
         // logger.info(`THIS IS REQ BODY FOR VIEW: ${JSON.stringify(req.body)}`);
         const { id } = req.body;
-        logger.info(`id === ${id}`);
+        // logger.info(`id === ${id}`);
         // Check if user has seen video before
 
         const user = await getOne("users", { _id: new ObjectId(uid) });
-          
+
         const targetVid = await getOne("videos", { "videoId": id })
 
         logger.info(`Video found from id: , ${targetVid}`);
