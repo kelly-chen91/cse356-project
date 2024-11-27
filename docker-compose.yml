@@ -1,7 +1,14 @@
 # version: "3.8"
 
 services:
-
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    restart: unless-stopped
+    volumes: 
+      - nginx/node-nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 80:80 # Reverse Proxying Node
   # NodeJS
   node:
     # container_name: node
@@ -16,38 +23,3 @@ services:
       - ./videos:/app/videos
     env_file:
       - .env
-
-  # # Redis for Message Queue
-  # redis:
-  #   container_name: redis
-  #   image: redis
-  #   restart: unless-stopped
-
-  # # Memcache for videos rec.
-  # memcached:
-  #   container_name: memcache
-  #   image: memcached:latest
-  #   ports:
-  #     - "11211:11211"
-
-  # recommender:
-  #     container_name: recommender
-  #     build: ./recommender/
-  #     volumes:
-  #       - ./recommender/app.py:/app/
-  #     ports:
-  #       - "5000:5000"
-  #     env_file:
-  #       - .env
-  # ffmpeg-queue:
-  #   container_name: ffmpeg-queue
-  #   build: ./ffmpeg-queue/
-  #   volumes:
-  #     - ./ffmpeg-queue/:/usr/src/app/
-  #     - /mnt/media:/usr/src/app/media # Mounting the mounted volume to the container.
-  #     - ./padded_videos:/usr/src/app/padded_videos
-  #     - ./videos:/usr/src/app/videos
-  #   # depends_on:
-  #   #   - redis
-  #   env_file: 
-  #     - .env
