@@ -11,7 +11,7 @@ const jsonPath = path.resolve("../m2.json");
 const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 
 mongoose
-  .connect("mongodb://root:example@130.245.136.146:27017/warmup?authsource=admin", {
+  .connect("mongodb://root:example@10.0.1.13:27017/warmup?authsource=admin", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -20,7 +20,7 @@ mongoose
 
     await Video.deleteMany({});
     await User.deleteMany({});
-    await Feedback.deleteMany({});
+    // await Feedback.deleteMany({});
     // console.log(jsonData);
     for (const key in jsonData) {
       console.log(`${key}: ${jsonData[key]}`);
