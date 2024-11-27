@@ -20,6 +20,7 @@ mongoose
 
     await Video.deleteMany({});
     await User.deleteMany({});
+    await Feedback.deleteMany({});
     // console.log(jsonData);
     for (const key in jsonData) {
       console.log(`${key}: ${jsonData[key]}`);
