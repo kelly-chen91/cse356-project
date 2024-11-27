@@ -31,7 +31,7 @@ const getOne = async (collection, filter) => {
   // });
   // console.log("Direct query with hardcoded ObjectId result:", video);
   const res = await col.findOne(filter);
-  console.log(`Query result: ${JSON.stringify(res)} with filter: ${JSON.stringify(filter)}`);
+//   console.log(`Query result: ${JSON.stringify(res)} with filter: ${JSON.stringify(filter)}`);
 
   return res;
 }

@@ -44,7 +44,7 @@
                         const id = video.id;
 
                         const thumbnailMetadata = await fetch(
-                            `http://doit.cse356.compas.cs.stonybrook.edu/api/thumbnail/${id}`,
+                            `http://doit.cse356.compas.cs.stonybrook.edu/api/thumbnail/${id}_thumbnail.jpg`,
                             {
                                 method: "GET",
                                 headers: {
@@ -53,7 +53,8 @@
                             }
                         );
 
-                        const thumbnailUrl = thumbnailMetadata.url;
+                        // const thumbnailUrl = thumbnailMetadata.url
+                        const thumbnailUrl = thumbnailMetadata.url.replace("_thumbnail.jpg", "");
 
                         displayThumbnail(thumbnailUrl, id);
                     });

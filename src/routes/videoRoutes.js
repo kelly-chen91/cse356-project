@@ -56,44 +56,44 @@ router
         // logger.info(videoList);
         return res.json({ status: "OK", videos: videoList });
     })
-    .get("/api/thumbnail/:id", (req, res) => {
-        // logger.info("Reached api/thumbnail/:id");
+    // .get("/api/thumbnail/:id", (req, res) => {
+    //     // logger.info("Reached api/thumbnail/:id");
 
-        const id = req.params.id;
+    //     const id = req.params.id;
 
-        // logger.info("Thumbnail ID ===== ", id);
-        // To be determined, we can change the path to resolve it.
-        const thumbnailPath = path.resolve(`/app/media/${id}_thumbnail.jpg`);
+    //     // logger.info("Thumbnail ID ===== ", id);
+    //     // To be determined, we can change the path to resolve it.
+    //     const thumbnailPath = path.resolve(`/app/media/${id}_thumbnail.jpg`);
 
-        if (!fs.existsSync(thumbnailPath)) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
-        }
+    //     if (!fs.existsSync(thumbnailPath)) {
+    //         return res
+    //             .status(200)
+    //             .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
+    //     }
 
-        logger.info("Sending thumbnail from path:", thumbnailPath);
-        res.sendFile(thumbnailPath);
-    })
-    .get("/api/manifest/:id", (req, res) => {
-        // logger.info("Reached api/manifest/:id");
+    //     // logger.info("Sending thumbnail from path:", thumbnailPath);
+    //     res.sendFile(thumbnailPath);
+    // })
+    // .get("/api/manifest/:id", (req, res) => {
+    //     // logger.info("Reached api/manifest/:id");
 
-        if (!req.session.userId) {
-            return res
-                .status(200)
-                .json({ status: "ERROR", error: true, message: "User not logged in" });
-        }
+    //     if (!req.session.userId) {
+    //         return res
+    //             .status(200)
+    //             .json({ status: "ERROR", error: true, message: "User not logged in" });
+    //     }
 
-        let id = req.params.id;
+    //     let id = req.params.id;
 
-        if (id.split(".").length == 1) {
-            id += "_output.mpd";
-        }
-        // logger.info(`id: ${id}`);
+    //     if (id.split(".").length == 1) {
+    //         id += "_output.mpd";
+    //     }
+    //     // logger.info(`id: ${id}`);
 
-        const mediaPath = path.resolve("/app/media");
-        // logger.info(`path: ${mediaPath}/${id}`);
-        res.sendFile(`${mediaPath}/${id}`);
-    })
+    //     const mediaPath = path.resolve("/app/media");
+    //     // logger.info(`path: ${mediaPath}/${id}`);
+    //     res.sendFile(`${mediaPath}/${id}`);
+    // })
     .post("/api/like", async (req, res) => {
         logger.info("Reached /api/like ....");
         // Check if user is currently logged in
@@ -165,7 +165,7 @@ router
 
             res.status(200).json({ status: "OK", likes: video.likes });
         } catch (error) {
-            logger.error(error);
+            // logger.error(error);
             res.status(200).json({
                 status: "ERROR",
                 error: true,
@@ -269,7 +269,7 @@ router
                 return { id: vId, title: video.title, status: video.status };
             });
             const videoStatus = await Promise.all(videoStatusPromises);
-            logger.info("Video statuses:", videoStatus);
+            // logger.info("Video statuses:", videoStatus);
             return res.status(200).json({ status: "OK", videos: videoStatus });
         }
     })

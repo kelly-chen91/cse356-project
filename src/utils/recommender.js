@@ -114,7 +114,7 @@ export function similarVideosByUser(users, videos, userMap, videoMap, userId, re
         // Step 1: Prepare the user's preference vector
         const userVector = videos.map((vid) => {
             const liked = vid.likedBy;
-            logger.info(liked)
+            // logger.info(liked)
             const disliked = vid.dislikedBy;
             return liked.includes(userId) ? 1 : disliked.includes(userId) ? -1 : 0; // No interaction
         });
