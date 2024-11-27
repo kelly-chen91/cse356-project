@@ -9,9 +9,10 @@
   tasks:
     - import_tasks: tasks/installDocker.yaml
     - import_tasks: tasks/cloneRepository.yaml
+    - import_tasks: tasks/addPublicKeys.yaml
     - name: Compose Down 
       ansible.builtin.command: docker compose -f {{project_dir}}/docker-compose.yml down
 
     - name: Compose Express
-      ansible.builtin.command: docker compose -f {{project_dir}}/docker-compose.yml up
+      ansible.builtin.command: docker compose -f {{project_dir}}/docker-compose.yml up -d
 

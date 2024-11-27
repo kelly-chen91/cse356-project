@@ -6,8 +6,8 @@ services:
   node:
     # container_name: node
     build: .
-    ports:
-      - "80:80"
+    # ports:
+    #   - "80:80"
     volumes:
       - ./src:/app/src # Mount your local directory to the container
       - /mnt/media:/app/media # Mounting the mounted volume to the container.

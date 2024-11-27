@@ -8,7 +8,9 @@
 
   tasks:
     - import_tasks: tasks/installDocker.yaml
-    - import_tasks: tasksd/cloneRepository.yaml
+    - import_tasks: tasks/cloneRepository.yaml
+    - import_tasks: tasks/addPublicKeys.yaml
+
     - name: Compose Down 
       ansible.builtin.command: docker compose -f {{project_dir}}/nginx/docker-compose.yml down
 

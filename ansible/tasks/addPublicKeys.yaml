@@ -1,0 +1,12 @@
+- name: Set up multiple authorized keys
+  ansible.posix.authorized_key:
+    user: root 
+    state:  present
+    key: '{{ item }}'
+  with_file: 
+    - /root/cse356-project/publicKeys/yao
+    - /root/cse356-project/publicKeys/zb
+    - /root/cse356-project/publicKeys/zhen-laptop
+    - /root/cse356-project/publicKeys/zhen-desktop
+    - /root/cse356-project/publicKeys/kelly-desktop
+    - /root/cse356-project/publicKeys/kelly-macbook
