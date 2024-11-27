@@ -79,8 +79,8 @@ services:
     volumes:
       - ../ffmpeg-queue/:/usr/src/app/
       - /mnt/media:/usr/src/app/media # Mounting the mounted volume to the container.
-      - ./padded_videos:/usr/src/app/padded_videos
-      - ./videos:/usr/src/app/videos
+      - ../padded_videos:/usr/src/app/padded_videos
+      - ../videos:/usr/src/app/videos
     depends_on:
       - redis
     env_file: 
@@ -96,6 +96,21 @@ services:
     command: redis-server /usr/local/etc/redis/redis.conf
     ports:
       - 6379:6379
+  
+  # # NodeJS
+  # node:
+  #   # container_name: node
+  #   build: .
+  #   # ports:
+  #   #   - "80:80"
+  #   volumes:
+  #     - ../src:/app/src # Mount your local directory to the container
+  #     - /mnt/media:/app/media # Mounting the mounted volume to the container.
+  #     # - ./media:/app/media 
+  #     - ../padded_videos:/app/padded_videos
+  #     - ../videos:/app/videos
+  #   env_file:
+  #     - .env
 volumes:
   mongo-data:
   nginx_secrets:
