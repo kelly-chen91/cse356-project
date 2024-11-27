@@ -82,7 +82,7 @@ def worker():
     """Redis worker to process tasks."""
     global redis_client
     try:
-        redis_client = redis.Redis(host='redis', port=6379, decode_responses=True)
+        redis_client = redis.Redis(host='130.245.136.237', port=6379, decode_responses=True)
         redis_client.ping()
         logging.info("Connected to Redis!")
         
