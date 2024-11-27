@@ -116,7 +116,7 @@ router
             // const videoId = new ObjectId(id);
             const video = await getOne("videos", { videoId: id })
 
-            logger.info(`what is video ${video} with id ${id}`);
+            // logger.info(`what is video ${video} with id ${id}`);
             const liked = user.liked.includes(id);
             const disliked = user.disliked.includes(id);
 
@@ -186,7 +186,7 @@ router
         const mp4File = req.file;
 
         if (!author || !title || !description || !mp4File) {
-            logger.info("ERR");
+            // logger.info("ERR");
             return res.status(400).json({
                 status: "ERROR",
                 error: true,
@@ -262,7 +262,7 @@ router
         }
     })
     .post("/api/view", async (req, res) => {
-        logger.info("Reached /api/view...");
+        // logger.info("Reached /api/view...");
         const uid = req.session.userId;
         if (!uid)
             return res
@@ -279,7 +279,7 @@ router
 
         const targetVid = await getOne("videos", { "videoId": id })
 
-        logger.info(`Video found from id: , ${targetVid}`);
+        // logger.info(`Video found from id: , ${targetVid}`);
         // logger.info(`User watched ${user.watched}`);
         const foundVideo = user.watched.includes(targetVid.videoId);
         let previouslyWatched = false;
