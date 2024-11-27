@@ -6,7 +6,7 @@ services:
     image: nginx:latest
     restart: unless-stopped
     volumes: 
-      - nginx/node-nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/node-nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
       - 80:80 # Reverse Proxying Node
   # NodeJS
