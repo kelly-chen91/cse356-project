@@ -21,6 +21,14 @@ sudo service docker start
 # Install curl
 sudo apt-get install -y curl
 
+# install pipx
+sudo apt install pipx -y
+pipx ensurepath
+sudo pipx ensurepath --global # optional to allow pipx actions with --global argument
+
+# install ansible
+pipx install --include-deps ansible 
+
 # Install nvm and Node.js LTS
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 source ~/.nvm/nvm.sh  # Load NVM for current session

@@ -1,0 +1,16 @@
+- name: Clone a Git repository
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure Git is installed
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+
+    - name: Clone the Git repository
+      git:
+        repo: https://github.com/kelly-chen91/cse356-project.git
+        dest: /root/cse356-project
+        version: new-scale-out  # Change to the desired branch or tag
+        update: yes  # Pull updates if the repository already exists
