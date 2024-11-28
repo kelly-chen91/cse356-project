@@ -14,5 +14,5 @@
       ansible.builtin.command: docker compose -f {{project_dir}}/docker-compose.yml down
 
     - name: Compose Express
-      ansible.builtin.command: docker compose -f {{project_dir}}/docker-compose.yml up --build -d --scale node=3
+      ansible.builtin.command: docker compose -f {{project_dir}}/docker-compose.yml up --build -d --scale node=3 --remove-orphans
 
