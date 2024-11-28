@@ -1,21 +1,21 @@
 # version: "3.8"
 
 services:
-  # haproxy:
-  #   image: haproxy:latest
-  #   volumes:
-  #     - ./haproxy/worker.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-  #   ports:
-  #     - 80:80
-
-  nginx:
-    container_name: nginx
-    image: nginx:latest
-    restart: unless-stopped
-    volumes: 
-      - ./nginx/node-nginx.conf:/etc/nginx/conf.d/default.conf
+  haproxy:
+    image: haproxy:latest
+    volumes:
+      - ./haproxy/worker.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
-      - 80:80 # Reverse Proxying Node
+      - 80:80
+
+  # nginx:
+  #   container_name: nginx
+  #   image: nginx:latest
+  #   restart: unless-stopped
+  #   volumes: 
+  #     - ./nginx/node-nginx.conf:/etc/nginx/conf.d/default.conf
+  #   ports:
+  #     - 80:80 # Reverse Proxying Node
   # NodeJS
   node:
     # container_name: node
