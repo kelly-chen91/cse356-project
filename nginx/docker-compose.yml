@@ -13,7 +13,7 @@ services:
     volumes: # Storage can be either a
       - /mnt/media:/etc/share/nginx/html/media
       - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
-      - ./user_conf.d:/etc/nginx/user_conf.d # or a host mount with a relative or full path.
+      - ./user_conf.d:/etc/nginx/conf.d # or a host mount with a relative or full path.
   
   # SMTP Server
   mail:
@@ -105,10 +105,10 @@ services:
     #   - "80:80"
     volumes:
       - ../src:/app/src # Mount your local directory to the container
-      # - /mnt/media:/app/media # Mounting the mounted volume to the container.
+      - /mnt/media/:/app/media/ # Mounting the mounted volume to the container.
       # - ./media:/app/media 
       # - ../padded_videos:/app/padded_videos
-      # - ../videos:/app/videos
+      - ../videos:/app/videos
     env_file:
       - ../.env
 volumes:
