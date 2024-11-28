@@ -14,6 +14,8 @@ services:
       - /mnt/media:/etc/share/nginx/html/media
       - nginx_secrets:/etc/letsencrypt # Docker managed volume (see list at the bottom)
       - ./user_conf.d:/etc/nginx/conf.d # or a host mount with a relative or full path.
+    depends_on:
+      - node
   
   # SMTP Server
   mail:
@@ -37,41 +39,41 @@ services:
     ports:
       - 9100:9100
 
-  mdb_exporter:
-    image: percona/mongodb_exporter:0.42.0
-    restart: unless-stopped
-    command:
-      - '--mongodb.uri=mongodb://root:example@mongodb:27017'  # Adjust the URI with correct credentials
-      - '--collect-all'
-    ports:
-      - 9216:9216  # Map Prometheus exporter port
+  # mdb_exporter:
+  #   image: percona/mongodb_exporter:0.42.0
+  #   restart: unless-stopped
+  #   command:
+  #     - '--mongodb.uri=mongodb://root:example@mongodb:27017'  # Adjust the URI with correct credentials
+  #     - '--collect-all'
+  #   ports:
+  #     - 9216:9216  # Map Prometheus exporter port
 
-  grafana:
-    container_name: grafana
-    image: grafana/grafana
-    restart: unless-stopped
-    volumes:
-      - grafana_storage:/var/lib/grafana
-    depends_on:
-      - prometheus
-    ports:
-      - 3000:3000
+  # grafana:
+  #   container_name: grafana
+  #   image: grafana/grafana
+  #   restart: unless-stopped
+  #   volumes:
+  #     - grafana_storage:/var/lib/grafana
+  #   depends_on:
+  #     - prometheus
+  #   ports:
+  #     - 3000:3000
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    restart: unless-stopped
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    ports:
-      - 9090:9090
+  # prometheus:
+  #   image: prom/prometheus
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.enable-lifecycle'
+  #   ports:
+  #     - 9090:9090
 
   ffmpeg-queue:
     container_name: ffmpeg-queue
