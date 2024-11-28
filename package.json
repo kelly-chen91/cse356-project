@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node --prof ./src/app.js"
+    "start": "node ./src/app.js"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
