@@ -84,7 +84,7 @@ router
             to: email,
             cc: ccEmail,
             subject: "Please verify your account",
-            text: `http://${req.headers.host}/api/verify?email=${email}&key=${verificationKey}`,
+            text: `https://doit.cse356.compas.cs.stonybrook.edu/api/verify?email=${email}&key=${verificationKey}`,
             // text: `https://www.google.com`,
         };
 

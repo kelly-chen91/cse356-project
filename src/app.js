@@ -6,6 +6,7 @@ import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import winston from "winston";
+import compression from "compression"
 
 const logger = winston.createLogger({
   transports: [
@@ -32,6 +33,7 @@ const uploadPage = path.resolve("/app/src/public/components/UploadPage.html");
 
 // Initialize the app
 const app = express();
+app.use(compression())
 app.use(
   session({
     secret: "supersecret difficult to guess string",
