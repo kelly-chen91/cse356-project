@@ -57,24 +57,25 @@ router
         // logger.info(videoList);
         return res.json({ status: "OK", videos: videoList });
     })
-    // .get("/api/thumbnail/:id", (req, res) => {
-    //     // logger.info("Reached api/thumbnail/:id");
+    .get("/api/thumbnail/:id", (req, res) => {
+        // logger.info("Reached api/thumbnail/:id");
+        console.log("SKIBIDI")
 
-    //     const id = req.params.id;
+        const id = req.params.id;
 
-    //     // logger.info("Thumbnail ID ===== ", id);
-    //     // To be determined, we can change the path to resolve it.
-    //     const thumbnailPath = path.resolve(`/app/media/${id}_thumbnail.jpg`);
+        // logger.info("Thumbnail ID ===== ", id);
+        // To be determined, we can change the path to resolve it.
+        const thumbnailPath = path.resolve(`/app/media/${id}_thumbnail.jpg`);
 
-    //     if (!fs.existsSync(thumbnailPath)) {
-    //         return res
-    //             .status(200)
-    //             .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
-    //     }
+        if (!fs.existsSync(thumbnailPath)) {
+            return res
+                .status(200)
+                .json({ status: "ERROR", error: true, message: "Thumbnail not found" });
+        }
 
-    //     // logger.info("Sending thumbnail from path:", thumbnailPath);
-    //     res.sendFile(thumbnailPath);
-    // })
+        // logger.info("Sending thumbnail from path:", thumbnailPath);
+        res.sendFile(thumbnailPath);
+    })
     // .get("/api/manifest/:id", (req, res) => {
     //     // logger.info("Reached api/manifest/:id");
 

@@ -11,7 +11,7 @@ COPY package.json ./
 RUN yarn install
 
 # # Install nodemon globally
-# RUN yarn global add nodemon
+RUN yarn global add nodemon
 ENV NODE_ENV=production
 
 # Install ffmpeg
@@ -19,4 +19,4 @@ ENV NODE_ENV=production
 # RUN apt update && apt install -y ffmpeg
 
 # Start the application with nodemon
-CMD ["yarn", "start"]
+CMD ["nodemon", "./app.js"]
