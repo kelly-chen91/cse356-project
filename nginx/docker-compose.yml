@@ -27,17 +27,17 @@ services:
       - "MYNETWORKS=130.245.136.0/24"
     network_mode: "host"
   
-  node_exporter:
-    image: quay.io/prometheus/node-exporter:latest
-    container_name: node_exporter
-    command:
-      - '--path.rootfs=/host'
-    pid: host
-    restart: unless-stopped
-    volumes:
-      - '/:/host:ro,rslave'
-    ports:
-      - 9100:9100
+  # node_exporter:
+  #   image: quay.io/prometheus/node-exporter:latest
+  #   container_name: node_exporter
+  #   command:
+  #     - '--path.rootfs=/host'
+  #   pid: host
+  #   restart: unless-stopped
+  #   volumes:
+  #     - '/:/host:ro,rslave'
+  #   ports:
+  #     - 9100:9100
 
   # mdb_exporter:
   #   image: percona/mongodb_exporter:0.42.0
